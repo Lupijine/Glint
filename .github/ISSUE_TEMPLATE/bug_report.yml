@@ -1,0 +1,38 @@
+name: Something is wrong
+description: A crash, a download that fails, or something that looks broken
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: input
+    id: link
+    attributes:
+      label: Link
+      description: The link that fails, if it is about a download and the video is public.
+  - type: textarea
+    id: error
+    attributes:
+      label: Error
+      description: >
+        For a failed download, tap the card and copy the error. After a crash, Glint shows the
+        error the next time it opens; copy it here.
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Glint version
+      description: Shown at the bottom of Settings.
+    validations:
+      required: true
+  - type: input
+    id: phone
+    attributes:
+      label: Phone and Android version
+      placeholder: Samsung Galaxy S22 Ultra, Android 16
+    validations:
+      required: true

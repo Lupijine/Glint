@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Android 11 and newer: the shared Download/Glint folder. -->
+    <external-path name="downloads" path="Download/" />
+    <!-- Android 10 and older: Glint's own Download folder, which needs no storage permission. -->
+    <external-files-path name="app_downloads" path="Download/" />
+</paths>

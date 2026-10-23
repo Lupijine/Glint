@@ -1,0 +1,11 @@
+name: An idea
+description: Something Glint could do, or do better
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What you would like, and what it would help you do.
+    validations:
+      required: true

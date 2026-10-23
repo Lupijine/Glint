@@ -1,0 +1,120 @@
+name: Check liquid glass
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: glass-check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Android ${{ matrix.api }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api: 33
+            target: default
+          - api: 36
+            target: google_apis
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Free space for the emulator
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/.ghcup /usr/local/share/boost
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;35.0.0'
+          log-accepted-android-sdk-licenses: false
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+
+      - name: Build, run unit tests and check lint
+        run: |
+          ./gradlew --no-daemon :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug -Pglint.abi=x86_64
+
+      - name: Enable emulator hardware acceleration
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Validate glass and native share windows on API ${{ matrix.api }}
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: ${{ matrix.target }}
+          profile: pixel_6
+          cores: 2
+          ram-size: 3072M
+          emulator-boot-timeout: 900
+          emulator-options: -no-window -no-snapshot -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: bash .github/test-glass.sh
+
+      - name: Record render screenshots in the job log
+        if: always()
+        run: |
+          python3 - <<'PY'
+          import base64
+          import os
+          from pathlib import Path
+
+          root = Path(os.environ['RUNNER_TEMP']) / 'glass-screenshots'
+          for image in sorted(root.rglob('*.png'))[:6]:
+              data = image.read_bytes()
+              if len(data) > 700_000:
+                  print(f'::warning::Skipped oversized render screenshot: {image.name}')
+                  continue
+              print(f'GLASS_TEST_IMAGE_BEGIN {image.name}')
+              encoded = base64.b64encode(data).decode('ascii')
+              for start in range(0, len(encoded), 120):
+                  print(encoded[start:start + 120])
+              print('GLASS_TEST_IMAGE_END')
+          PY
+
+      - name: Summarize render test results
+        if: always()
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import os
+          import xml.etree.ElementTree as ET
+
+          reports = list(Path('app/build/outputs/androidTest-results/connected').glob('**/TEST-*.xml'))
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Liquid glass validation\n\n')
+              if not reports:
+                  summary.write('No emulator results were produced; inspect the failed build or emulator step.\n')
+              for report in reports:
+                  root = ET.parse(report).getroot()
+                  summary.write(f"- {root.get('name')}: {root.get('tests')} tests, {root.get('failures', '0')} failures, {root.get('errors', '0')} errors.\n")
+                  for case in root.iter('testcase'):
+                      for failure in list(case.findall('failure')) + list(case.findall('error')):
+                          summary.write(f"\n**{case.get('name')}**\n\n```text\n{(failure.text or failure.get('message', ''))[:4000]}\n```\n")
+              summary.write('\nThe pixel tests check lens displacement and updates from draw-only source changes. Bounded PNG screenshots are embedded as base64 between GLASS_TEST_IMAGE_BEGIN / GLASS_TEST_IMAGE_END markers in the job log; this workflow does not upload artifacts or publish releases.\n')
+          PY

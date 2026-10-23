@@ -1,0 +1,23 @@
+Glint downloads video and audio from YouTube and thousands of other sites, using yt-dlp. It is free and open source, with no ads, no accounts and no tracking.
+
+<b>Download</b>
+<ul>
+<li>Share a link from any app and a glass sheet opens over it, or tap + and paste. Type words to search YouTube.</li>
+<li>Every link is read first: a preview, the real qualities with their sizes, and every format yt-dlp finds.</li>
+<li>Video, or audio only as MP3, M4A, OPUS or the original format.</li>
+<li>Playlists and channels: pick the videos you want.</li>
+<li>Trim a clip or choose chapters, as separate files or joined, with optional frame-exact cuts.</li>
+<li>Pause, resume and retry. Downloads keep going after you close the app.</li>
+</ul>
+
+<b>Follow</b>
+Follow a channel or playlist and its new videos download by themselves, checked in the background, on Wi-Fi only if you like.
+
+<b>Library and commands</b>
+A searchable library of finished files to play, share or delete. Save your own yt-dlp options as commands and run them on any link.
+
+<b>Settings</b>
+Default quality and format, a most-compatible mode, faster downloads, folders by type or site, saving to any folder including memory cards, subtitles, cover art and metadata, SponsorBlock, signing in to sites or importing cookies.txt, proxy and speed limit. yt-dlp updates from inside the app.
+
+<b>Look</b>
+Liquid glass with real lens refraction on Android 13 and newer. Ten themes, or your own picture as the background. 30 languages.

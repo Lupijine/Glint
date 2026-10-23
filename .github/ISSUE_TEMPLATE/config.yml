@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: A site that does not download
+    url: https://github.com/yt-dlp/yt-dlp/issues
+    about: If the same link also fails in yt-dlp on a computer, the fix belongs there. Try Settings > yt-dlp > Update now first.
