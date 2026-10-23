@@ -28,16 +28,13 @@ publishes the APKs as a pre-release named `preview-<branch>`. Their version ends
 1. Raise `versionCode` and `versionName` in `app/build.gradle.kts`.
 2. Write the release notes in `fastlane/metadata/android/en-US/changelogs/<versionCode>.txt`
    (under 500 characters).
-3. Commit to `main`, then tag and push:
+3. Commit to `main`, then open the Actions tab, choose **Release** and press **Run workflow** on
+   `main`. Pushing a tag that matches the version (`git tag v0.9.0 && git push origin v0.9.0`)
+   starts it too.
 
-   ```sh
-   git tag v0.9.0
-   git push origin v0.9.0
-   ```
-
-The **Release** workflow checks that the tag matches `versionName`, builds and tests the APKs,
-and publishes a release with one APK per processor type, the notes, and the signing
-certificate's fingerprint. It refuses to publish without the signing key.
+The **Release** workflow checks the version (and that it is not released yet), builds and tests
+the APKs, and publishes a release tagged `v<versionName>` with one APK per processor type, the
+notes, and the signing certificate's fingerprint. It refuses to publish without the signing key.
 
 ## Store listing
 

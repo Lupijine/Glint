@@ -1,10 +1,10 @@
 name: Release
 
-# Publishes a release when a version tag is pushed, for example:
-#   git tag v0.9.0 && git push origin v0.9.0
-# The tag must match versionName in app/build.gradle.kts, and the release notes come from
-# fastlane/metadata/android/en-US/changelogs/<versionCode>.txt.
+# Publishes a release of the version in app/build.gradle.kts, with the notes from
+# fastlane/metadata/android/en-US/changelogs/<versionCode>.txt. Start it from the Actions tab
+# (Release > Run workflow, on main), or push a tag that matches the version, such as v0.9.0.
 on:
+  workflow_dispatch:
   push:
     tags: ['v*']
 
@@ -27,12 +27,26 @@ jobs:
 
       - name: Read the version
         id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
         run: |
           name=$(sed -n 's/^ *versionName = "\(.*\)"$/\1/p' app/build.gradle.kts)
           code=$(sed -n 's/^ *versionCode = \([0-9]*\)$/\1/p' app/build.gradle.kts)
-          if [ "v$name" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match versionName $name in app/build.gradle.kts."
-            exit 1
+          if [ "$GITHUB_EVENT_NAME" = "push" ]; then
+            if [ "v$name" != "$GITHUB_REF_NAME" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match versionName $name in app/build.gradle.kts."
+              exit 1
+            fi
+          else
+            if [ "$GITHUB_REF_NAME" != "main" ]; then
+              echo "::error::Releases are made from main."
+              exit 1
+            fi
+            if gh release view "v$name" >/dev/null 2>&1; then
+              echo "::error::Version $name is already released. Raise versionCode and versionName first."
+              exit 1
+            fi
           fi
           notes="fastlane/metadata/android/en-US/changelogs/$code.txt"
           if [ ! -s "$notes" ]; then
@@ -40,6 +54,7 @@ jobs:
             exit 1
           fi
           echo "name=$name" >> "$GITHUB_OUTPUT"
+          echo "tag=v$name" >> "$GITHUB_OUTPUT"
           echo "notes=$notes" >> "$GITHUB_OUTPUT"
 
       - name: Set up JDK 21
@@ -79,6 +94,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
           VERSION: ${{ steps.version.outputs.name }}
+          TAG: ${{ steps.version.outputs.tag }}
           NOTES: ${{ steps.version.outputs.notes }}
         run: |
           mkdir -p out
@@ -100,7 +116,9 @@ jobs:
             echo
             echo "Signing certificate SHA-256: \`$cert\`"
           } > out/notes.md
-          gh release create "$GITHUB_REF_NAME" out/*.apk \
-            --verify-tag \
+          # A pushed tag already exists; started by hand, the release creates its tag on this commit.
+          gh release create "$TAG" out/*.apk \
+            --target "$GITHUB_SHA" \
             --title "Glint $VERSION" \
-            --notes-file out/notes.md
+            --notes-file out/notes.md \
+            --latest
