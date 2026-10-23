@@ -470,14 +470,16 @@ object DownloadManager {
 
     private suspend fun fetchInfo(item: DownloadItem, attempt: Attempt) {
         // The wrapper's getInfo has no process ID. Interrupting its blocking wait cancels it too.
-        val info = runInterruptible {
-            YoutubeDL.getInfo(
-                YoutubeDLRequest(item.url).apply {
-                    addOption("--no-playlist")
-                    addOption("-R", "1")
-                    addOption("--socket-timeout", "10")
-                    addCommands(DownloadArgs.network(SettingsStore.current, CookieStore.path()))
-                })
+        val info = CookieStore.withRunCookies { cookies ->
+            runInterruptible {
+                YoutubeDL.getInfo(
+                    YoutubeDLRequest(item.url).apply {
+                        addOption("--no-playlist")
+                        addOption("-R", "1")
+                        addOption("--socket-timeout", "10")
+                        addCommands(DownloadArgs.network(SettingsStore.current, cookies))
+                    })
+            }
         }
         ensureCurrent(attempt)
         update(attempt) {
@@ -506,34 +508,37 @@ object DownloadManager {
         ensureCurrent(attempt)
         update(attempt) { it.copy(status = DownloadItem.Status.Downloading) }
 
-        val request =
-            YoutubeDLRequest(item.url).apply {
-                // Every option goes in as written: some take two values, which addOption cannot.
-                addCommands(
-                    DownloadArgs.download(
-                        item = item,
-                        settings = settings,
-                        homeDirectory = dir.absolutePath,
-                        temporaryDirectory = temporaryDirectory.absolutePath,
-                        markerPath = marker.absolutePath,
-                        // The same name on every attempt lets yt-dlp continue its partial files.
-                        outputTemplate = DownloadOutput.template(item.id, item.title.takeIf { item.isClip }),
-                        cookiesPath = CookieStore.path(),
-                        deviceLanguage = Locale.getDefault().language,
-                    ))
-            }
+        // yt-dlp gets its own copy of the cookies; see CookieStore.withRunCookies.
+        CookieStore.withRunCookies { cookies ->
+            val request =
+                YoutubeDLRequest(item.url).apply {
+                    // Every option goes in as written: some take two values, which addOption cannot.
+                    addCommands(
+                        DownloadArgs.download(
+                            item = item,
+                            settings = settings,
+                            homeDirectory = dir.absolutePath,
+                            temporaryDirectory = temporaryDirectory.absolutePath,
+                            markerPath = marker.absolutePath,
+                            // The same name on every attempt lets yt-dlp continue its partial files.
+                            outputTemplate = DownloadOutput.template(item.id, item.title.takeIf { item.isClip }),
+                            cookiesPath = cookies,
+                            deviceLanguage = Locale.getDefault().language,
+                        ))
+                }
 
-        runInterruptible {
-            YoutubeDL.execute(request, attempt.token) { progress, eta, line ->
-                // yt-dlp can emit bursts of output; labels need at most four refreshes a second.
-                if (attempt.progressUpdates.shouldPublish(SystemClock.elapsedRealtime())) {
-                    update(attempt) {
-                        it.copy(
-                            status = DownloadItem.Status.Downloading,
-                            progress = if (progress >= 0f) (progress / 100f).coerceIn(0f, 1f) else it.progress,
-                            etaSeconds = eta,
-                            speed = SpeedRegex.find(line)?.groupValues?.get(1) ?: it.speed,
-                        )
+            runInterruptible {
+                YoutubeDL.execute(request, attempt.token) { progress, eta, line ->
+                    // yt-dlp can emit bursts of output; labels need at most four refreshes a second.
+                    if (attempt.progressUpdates.shouldPublish(SystemClock.elapsedRealtime())) {
+                        update(attempt) {
+                            it.copy(
+                                status = DownloadItem.Status.Downloading,
+                                progress = if (progress >= 0f) (progress / 100f).coerceIn(0f, 1f) else it.progress,
+                                etaSeconds = eta,
+                                speed = SpeedRegex.find(line)?.groupValues?.get(1) ?: it.speed,
+                            )
+                        }
                     }
                 }
             }
@@ -550,24 +555,28 @@ object DownloadManager {
             if (target.tree != null) {
                 update(attempt) { it.copy(status = DownloadItem.Status.Saving, speed = "", etaSeconds = -1) }
                 val failures = mutableListOf<String>()
-                val copied =
+                // Each file with its staged original, which goes only once the whole set is saved.
+                val copied: List<Pair<Saved, File?>> =
                     reported.map { file ->
                         // A file outside Glint's staging folder was placed by the command itself.
-                        if (!file.startsWith(dir.canonicalFile)) return@map Saved(path = file, uri = null)
+                        if (!file.startsWith(dir.canonicalFile)) return@map Saved(path = file, uri = null) to null
                         val name = DownloadOutput.finalName(file.name, item.id) { false }
                         try {
                             val document = Storage.copyToTree(appContext, target.tree, target.treeFolders, file, name)
-                            file.delete()
-                            Saved(path = null, uri = document)
+                            Saved(path = null, uri = document) to file
                         } catch (error: IOException) {
                             failures += error.message ?: "Could not save \"$name\" to the chosen folder"
-                            Saved(path = file, uri = null)
+                            Saved(path = file, uri = null) to null
                         }
                     }
-                // The staging folder is only cleared after a full save, so nothing is lost: the
-                // download fails with the reason, and trying again copies the kept file.
-                if (failures.isNotEmpty()) throw IOException(failures.joinToString("\n"))
-                copied
+                if (failures.isNotEmpty()) {
+                    // All or nothing: the copies already made are taken back and every staged file
+                    // stays, so trying again saves the whole set once, never some files twice.
+                    copied.forEach { (saved, _) -> saved.uri?.let { Storage.deleteDocument(appContext, it) } }
+                    throw IOException(failures.joinToString("\n"))
+                }
+                copied.forEach { (_, staged) -> staged?.delete() }
+                copied.map { it.first }
             } else {
                 reported.map { Saved(path = DownloadOutput.moveToFinalName(file = it, itemId = item.id), uri = null) }
             }

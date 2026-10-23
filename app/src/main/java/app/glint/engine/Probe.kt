@@ -33,10 +33,13 @@ object Prober {
         if (engine is Engine.State.Failed) throw IllegalStateException(engine.message)
 
         val probe =
-            runInterruptible(Dispatchers.IO) {
-                // Playlist entries are listed, not resolved one by one, so long lists stay fast.
-                val request = YoutubeDLRequest(url).apply { addCommands(args) }
-                ProbeParser.parse(YoutubeDL.execute(request).out, url)
+            CookieStore.withRunCookies { cookies ->
+                val runArgs = DownloadArgs.probe(wholePlaylist, SettingsStore.current, cookies, playlistEnd)
+                runInterruptible(Dispatchers.IO) {
+                    // Playlist entries are listed, not resolved one by one, so long lists stay fast.
+                    val request = YoutubeDLRequest(url).apply { addCommands(runArgs) }
+                    ProbeParser.parse(YoutubeDL.execute(request).out, url)
+                }
             }
         synchronized(cache) {
             cache.remove(key)

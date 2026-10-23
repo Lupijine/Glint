@@ -137,17 +137,67 @@ object CookieStore {
     private const val MaxImportBytes = 5L * 1024 * 1024
 
     private lateinit var file: File
+    private lateinit var runs: File
+    private val lock = Any()
+    /** Bumped whenever the person changes the cookies: signing in, importing or signing out. */
+    private var generation = 0L
     private val mutableSites = MutableStateFlow<List<String>>(emptyList())
     /** The sites with saved cookies. */
     val sites: StateFlow<List<String>> = mutableSites.asStateFlow()
 
     fun initialize(context: Context) {
         file = File(context.filesDir, "cookies.txt")
+        runs = File(context.filesDir, "cookie-runs").apply { deleteRecursively() }
         mutableSites.value = runCatching { NetscapeCookies.sites(file.readText()) }.getOrDefault(emptyList())
     }
 
-    /** The cookies file for yt-dlp, or null when there are no cookies. */
+    /** The saved cookies file, or null when there are no cookies. yt-dlp gets a copy: [withRunCookies]. */
     fun path(): String? = file.takeIf { mutableSites.value.isNotEmpty() && it.isFile }?.absolutePath
+
+    /**
+     * Runs [block] with the path of a private copy of the cookies, or null when there are none.
+     * yt-dlp writes its cookies back to that file when it exits; with a copy, a download that was
+     * running while the person signed out can never bring the cookies back. Cookies the site
+     * refreshed during a run that ended normally are kept, unless the person changed the cookies
+     * meanwhile; a run that was stopped may have been cut off while writing, so it changes nothing.
+     */
+    inline fun <T> withRunCookies(block: (path: String?) -> T): T {
+        val run = beginRun()
+        var ended = false
+        try {
+            val result = block(run?.copy?.absolutePath)
+            ended = true
+            return result
+        } finally {
+            if (run != null) endRun(run, keep = ended)
+        }
+    }
+
+    @PublishedApi internal class Run(val copy: File, val generation: Long)
+
+    @PublishedApi
+    internal fun beginRun(): Run? =
+        synchronized(lock) {
+            if (!::file.isInitialized || mutableSites.value.isEmpty() || !file.isFile) return null
+            runs.mkdirs()
+            val copy = File(runs, "${UUID.randomUUID()}.txt")
+            if (runCatching { file.copyTo(copy) }.isFailure) return null
+            Run(copy, generation)
+        }
+
+    @PublishedApi
+    internal fun endRun(run: Run, keep: Boolean) {
+        synchronized(lock) {
+            try {
+                if (keep && run.generation == generation && file.isFile) {
+                    val text = runCatching { run.copy.readText() }.getOrNull()
+                    if (text != null && NetscapeCookies.looksValid(text)) write(text)
+                }
+            } finally {
+                run.copy.delete()
+            }
+        }
+    }
 
     /** Adds the cookies in a cookies.txt file. False when the file holds no cookies. */
     suspend fun import(context: Context, uri: Uri): Boolean =
@@ -162,7 +212,7 @@ object CookieStore {
                     .getOrNull() ?: return@withContext false
             val lines = NetscapeCookies.lines(text)
             if (lines.isEmpty()) return@withContext false
-            store(NetscapeCookies.merge(existing(), lines))
+            synchronized(lock) { store(NetscapeCookies.merge(existing(), lines)) }
             true
         }
 
@@ -170,19 +220,28 @@ object CookieStore {
     suspend fun saveFromBrowser(host: String, cookieHeader: String): Int =
         withContext(Dispatchers.IO) {
             val lines = NetscapeCookies.fromBrowser(host, cookieHeader, System.currentTimeMillis() / 1000)
-            if (lines.isNotEmpty()) store(NetscapeCookies.merge(existing(), lines))
+            if (lines.isNotEmpty()) synchronized(lock) { store(NetscapeCookies.merge(existing(), lines)) }
             lines.size
         }
 
     suspend fun clear() =
         withContext(Dispatchers.IO) {
-            file.delete()
-            mutableSites.value = emptyList()
+            synchronized(lock) {
+                generation++
+                file.delete()
+                mutableSites.value = emptyList()
+            }
         }
 
     private fun existing(): String = runCatching { file.readText() }.getOrDefault("")
 
+    /** Saves cookies the person chose; downloads already running keep their own copy. */
     private fun store(text: String) {
+        generation++
+        write(text)
+    }
+
+    private fun write(text: String) {
         val temporary = File(file.parentFile, "cookies.txt.tmp")
         temporary.writeText(text)
         if (!temporary.renameTo(file)) {

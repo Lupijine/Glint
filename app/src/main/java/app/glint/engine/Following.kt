@@ -94,8 +94,10 @@ object Following {
     }
 
     fun unfollow(id: String) {
-        save { list -> list.filterNot { it.id == id } }
-        seenFile(id).delete()
+        synchronized(commitLock) {
+            save { list -> list.filterNot { it.id == id } }
+            seenFile(id).delete()
+        }
     }
 
     fun setEnabled(id: String, enabled: Boolean) = save { list -> list.map { if (it.id == id) it.copy(enabled = enabled) else it } }
@@ -118,24 +120,32 @@ object Following {
                 val playlist =
                     Prober.probe(subscription.url, wholePlaylist = true, fresh = true, playlistEnd = limit) as? Probe.Playlist
                         ?: throw IllegalStateException("This link no longer opens as a channel or playlist")
-                val seen = readSeen(subscription.id)
-                val plan = Subscriptions.plan(playlist.entries, seen, newestFirst = limit != null)
-                if (plan.download.isNotEmpty()) DownloadManager.enqueue(plan.download.map { request(subscription, it) })
-                if (plan.markSeen.isNotEmpty()) {
-                    seenFile(subscription.id).appendText(plan.markSeen.joinToString("\n", postfix = "\n"))
-                }
-                save { list ->
-                    list.map {
-                        if (it.id != subscription.id) it
-                        else
-                            it.copy(
-                                lastCheckedAt = System.currentTimeMillis(),
-                                lastError = null,
-                                downloadedCount = it.downloadedCount + plan.download.size,
-                            )
+                // Reading a channel takes a while. If it was unfollowed or paused meanwhile, its
+                // history is gone or should not grow, so nothing is queued. Unfollowing waits for
+                // this block, so the two cannot interleave.
+                synchronized(commitLock) {
+                    val current =
+                        subscriptions.value.firstOrNull { it.id == subscription.id && it.enabled }
+                            ?: return@synchronized 0
+                    val seen = readSeen(current.id)
+                    val plan = Subscriptions.plan(playlist.entries, seen, newestFirst = limit != null)
+                    if (plan.download.isNotEmpty()) DownloadManager.enqueue(plan.download.map { request(current, it) })
+                    if (plan.markSeen.isNotEmpty()) {
+                        seenFile(current.id).appendText(plan.markSeen.joinToString("\n", postfix = "\n"))
                     }
+                    save { list ->
+                        list.map {
+                            if (it.id != current.id) it
+                            else
+                                it.copy(
+                                    lastCheckedAt = System.currentTimeMillis(),
+                                    lastError = null,
+                                    downloadedCount = it.downloadedCount + plan.download.size,
+                                )
+                        }
+                    }
+                    plan.download.size
                 }
-                plan.download.size
             } catch (error: CancellationException) {
                 throw error
             } catch (error: Exception) {
@@ -166,6 +176,9 @@ object Following {
             folder = DownloadOutput.folderName(subscription.title),
             subscriptionId = subscription.id,
         )
+
+    /** Held while a check queues videos and records them, and while unfollowing. */
+    private val commitLock = Any()
 
     private fun seenFile(id: String) = File(appContext.filesDir, "following/$id.txt")
 
