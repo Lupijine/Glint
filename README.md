@@ -16,7 +16,7 @@
 <p align="center">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" width="31%" alt="Downloads: a Blender film trailer finished and a NASA video downloading">
   <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" width="31%" alt="Commands: saved yt-dlp options, over the city lights theme">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" width="31%" alt="Settings: theme picker and download defaults, over the zellige theme">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" width="31%" alt="Settings: the theme picker with the liquid-metal themes, over a picture chosen as the background">
 </p>
 
 ## Features
