@@ -60,6 +60,7 @@ import app.glint.engine.Clips
 import app.glint.engine.DownloadItem
 import app.glint.engine.DownloadManager
 import app.glint.engine.MediaType
+import app.glint.engine.errorKind
 import app.glint.ui.icons.GlintIcons
 import app.glint.ui.theme.glassSurface
 import coil.compose.AsyncImage
@@ -205,11 +206,7 @@ private fun StatusLine(item: DownloadItem, accent: Color) {
         DownloadItem.Status.Interrupted ->
             SmallStatus(stringResource(R.string.status_interrupted), SecondaryText)
         DownloadItem.Status.Failed ->
-            SmallStatus(
-                item.error ?: stringResource(R.string.status_failed),
-                MaterialTheme.colorScheme.error,
-                maxLines = 2,
-            )
+            SmallStatus(stringResource(item.errorKind.message), MaterialTheme.colorScheme.error, maxLines = 2)
     }
 }
 
@@ -348,11 +345,11 @@ private fun ProgressFill(modifier: Modifier, fraction: Float?, accent: Color) {
 }
 
 
-/** The downloader's full output for a failed download, to read, copy or retry. */
+/** What went wrong with a download, with the downloader's own output below to copy, and retry. */
 @Composable
 private fun ErrorDialog(item: DownloadItem, onDismiss: () -> Unit) {
     val clipboard = LocalClipboardManager.current
-    val detail = item.errorDetail ?: item.error ?: stringResource(R.string.status_failed)
+    val detail = item.errorDetail ?: item.error
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.error_title)) },
@@ -367,8 +364,25 @@ private fun ErrorDialog(item: DownloadItem, onDismiss: () -> Unit) {
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(10.dp))
-                Text(text = detail, fontSize = 12.sp, lineHeight = 17.sp, fontFamily = FontFamily.Monospace)
+                Spacer(Modifier.height(8.dp))
+                Text(text = stringResource(item.errorKind.message), fontSize = 14.sp, lineHeight = 20.sp)
+                if (detail != null) {
+                    Spacer(Modifier.height(16.dp))
+                    Text(
+                        text = stringResource(R.string.error_details),
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = SecondaryText,
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        text = detail,
+                        fontSize = 11.5.sp,
+                        lineHeight = 16.sp,
+                        fontFamily = FontFamily.Monospace,
+                        color = SecondaryText,
+                    )
+                }
             }
         },
         confirmButton = {
@@ -382,8 +396,10 @@ private fun ErrorDialog(item: DownloadItem, onDismiss: () -> Unit) {
         },
         dismissButton = {
             Row {
-                TextButton(onClick = { clipboard.setText(AnnotatedString("${item.url}\n\n$detail")) }) {
-                    Text(stringResource(R.string.copy_error))
+                if (detail != null) {
+                    TextButton(onClick = { clipboard.setText(AnnotatedString("${item.url}\n\n$detail")) }) {
+                        Text(stringResource(R.string.copy_error))
+                    }
                 }
                 TextButton(onClick = onDismiss) { Text(stringResource(R.string.close)) }
             }

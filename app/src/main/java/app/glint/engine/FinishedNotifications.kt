@@ -95,8 +95,8 @@ object FinishedNotifications {
             single != null ->
                 builder
                     .setContentTitle(context.getString(R.string.notification_failed, single.title.ifBlank { single.url }))
-                    .setContentText(single.error ?: context.getString(R.string.status_failed))
-                    .setStyle(NotificationCompat.BigTextStyle().bigText(single.error))
+                    .setContentText(context.getString(single.errorKind.message))
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(context.getString(single.errorKind.message)))
                     .setContentIntent(openApp(context, openItemId = null))
                     .build()
             else -> {

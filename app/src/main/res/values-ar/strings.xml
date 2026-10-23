@@ -35,7 +35,6 @@
     <string name="status_preparing">جارٍ جلب معلومات الفيديو…</string>
     <string name="status_completed">مكتمل</string>
     <string name="status_canceled">أُلغي</string>
-    <string name="status_failed">فشل</string>
     <string name="engine_starting">جارٍ تجهيز محرك التنزيل… قد يستغرق ذلك لحظة في أول تشغيل.</string>
     <string name="engine_failed">تعذّر تشغيل محرك التنزيل: %s</string>
     <string name="action_cancel">إلغاء</string>
@@ -285,12 +284,6 @@
     <string name="section_appearance">المظهر</string>
     <string name="theme">السمة</string>
     <string name="theme_chrome">كروم</string>
-    <string name="theme_gold">ذهبي</string>
-    <string name="theme_aurora">الشفق القطبي</string>
-    <string name="theme_dunes">الكثبان</string>
-    <string name="theme_ocean">المحيط</string>
-    <string name="theme_nebula">السديم</string>
-    <string name="theme_midnight">منتصف الليل</string>
     <string name="download_added">أُضيف إلى التنزيلات</string>
     <string name="crash_title">أُغلق Glint بشكل غير متوقع</string>
     <string name="crash_body">هذا ما حدث في المرة السابقة. انسخه وأرسله لإصلاح المشكلة.</string>
@@ -301,5 +294,21 @@
     <string name="photo_pick">اختيار صورة</string>
     <string name="photo_failed">تعذّر استعمال هذه الصورة.</string>
     <string name="photo_change_hint">اضغط على صورتك مرة أخرى لاختيار غيرها.</string>
+    <string name="error_network">انقطع الاتصال. أعد المحاولة ليُستأنف التنزيل من حيث توقف.</string>
+    <string name="error_rate_limited">يحدّ الموقع من التنزيلات حالياً. حاول مرة أخرى لاحقاً.</string>
+    <string name="error_bot_check">يريد YouTube التأكد من أنك لست برنامجاً آلياً. سجّل الدخول إلى YouTube من الإعدادات ثم أعد المحاولة.</string>
+    <string name="error_sign_in">يحتاج هذا الفيديو إلى حساب مسجَّل الدخول. سجّل الدخول إلى الموقع من الإعدادات ثم أعد المحاولة.</string>
+    <string name="error_unavailable">هذا الفيديو لم يعد متاحاً.</string>
+    <string name="error_geo">هذا الفيديو غير متاح في بلدك.</string>
+    <string name="error_not_started">لم يبدأ هذا الفيديو بعد. أعد المحاولة عندما يبدأ البث المباشر.</string>
+    <string name="error_drm">هذا الفيديو محمي من النسخ ولا يمكن تنزيله.</string>
+    <string name="error_unsupported">لا يستطيع Glint التنزيل من هذا الرابط.</string>
+    <string name="error_format">الجودة المختارة لم تعد متوفرة. نزّله من جديد واختر جودة أخرى.</string>
+    <string name="error_storage">امتلأت مساحة التخزين في الهاتف.</string>
+    <string name="error_outdated">ربما تغيّر الموقع. حدّث yt-dlp من الإعدادات ثم أعد المحاولة.</string>
+    <string name="error_unknown">حدث خطأ ما. اضغط لعرض التفاصيل.</string>
+    <string name="error_details">التفاصيل</string>
+    <string name="theme_mercury">زئبق</string>
+    <string name="theme_drop">قطرة</string>
 </resources>
 

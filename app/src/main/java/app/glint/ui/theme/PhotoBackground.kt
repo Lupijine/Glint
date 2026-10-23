@@ -41,6 +41,19 @@ object PhotoBackground {
     /** The picture's theme, or null until a picture is chosen and loaded. */
     val theme: StateFlow<AppTheme?> = mutableTheme.asStateFlow()
 
+    /** Plain black with silver glass, shown for the moment before the picture has loaded. */
+    val loading =
+        AppTheme(
+            id = ThemeId,
+            name = R.string.theme_photo,
+            accent = Color(0xFFDDE3EE),
+            secondary = Color(0xFFAEB6C4),
+            background = Color(0xFF000000),
+            glass = Color(0xFF111214),
+            scrim = 0f,
+            artwork = {},
+        )
+
     /** Loads the saved picture in the background, so it is ready when the app is drawn. */
     fun preload(context: Context) {
         val file = File(context.filesDir, FileName)

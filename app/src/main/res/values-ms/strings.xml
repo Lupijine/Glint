@@ -27,7 +27,6 @@
     <string name="status_preparing">Mendapatkan maklumat video…</string>
     <string name="status_completed">Selesai</string>
     <string name="status_canceled">Dibatalkan</string>
-    <string name="status_failed">Gagal</string>
     <string name="engine_starting">Menyediakan enjin muat turun… pelancaran pertama mengambil sedikit masa.</string>
     <string name="engine_failed">Enjin muat turun tidak dapat dimulakan: %s</string>
     <string name="action_cancel">Batal</string>
@@ -221,12 +220,6 @@
     <string name="section_appearance">Rupa</string>
     <string name="theme">Tema</string>
     <string name="theme_chrome">Krom</string>
-    <string name="theme_gold">Emas</string>
-    <string name="theme_aurora">Aurora</string>
-    <string name="theme_dunes">Bukit pasir</string>
-    <string name="theme_ocean">Lautan</string>
-    <string name="theme_nebula">Nebula</string>
-    <string name="theme_midnight">Tengah malam</string>
     <string name="download_added">Ditambah ke muat turun</string>
     <string name="crash_title">Glint tertutup secara tidak dijangka</string>
     <string name="crash_body">Inilah yang tidak kena kali lepas. Salin dan hantar supaya masalah dapat dibaiki.</string>
@@ -237,6 +230,22 @@
     <string name="photo_pick">Pilih gambar</string>
     <string name="photo_failed">Gambar ini tidak dapat digunakan.</string>
     <string name="photo_change_hint">Ketik gambar anda sekali lagi untuk memilih yang lain.</string>
+    <string name="error_network">Sambungan terputus. Cuba semula untuk menyambung dari tempat ia berhenti.</string>
+    <string name="error_rate_limited">Laman ini sedang mengehadkan muat turun. Cuba lagi kemudian.</string>
+    <string name="error_bot_check">YouTube mahu memastikan anda bukan bot. Log masuk ke YouTube dalam Tetapan, kemudian cuba semula.</string>
+    <string name="error_sign_in">Video ini memerlukan akaun yang dilog masuk. Log masuk ke laman dalam Tetapan, kemudian cuba semula.</string>
+    <string name="error_unavailable">Video ini tidak lagi tersedia.</string>
+    <string name="error_geo">Video ini tidak tersedia di negara anda.</string>
+    <string name="error_not_started">Video ini belum bermula. Cuba semula apabila ia disiarkan secara langsung.</string>
+    <string name="error_drm">Video ini dilindungi daripada penyalinan dan tidak boleh dimuat turun.</string>
+    <string name="error_unsupported">Glint tidak boleh memuat turun daripada pautan ini.</string>
+    <string name="error_format">Kualiti yang dipilih tidak lagi ditawarkan. Muat turun semula dan pilih yang lain.</string>
+    <string name="error_storage">Ruang storan telefon sudah habis.</string>
+    <string name="error_outdated">Laman mungkin telah berubah. Kemas kini yt-dlp dalam Tetapan, kemudian cuba semula.</string>
+    <string name="error_unknown">Sesuatu tidak kena. Ketik untuk butiran.</string>
+    <string name="error_details">Butiran</string>
+    <string name="theme_mercury">Merkuri</string>
+    <string name="theme_drop">Titisan</string>
     <plurals name="notification_active">
         <item quantity="other">%d muat turun sedang berjalan</item>
     </plurals>

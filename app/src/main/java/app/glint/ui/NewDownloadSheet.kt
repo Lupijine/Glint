@@ -71,6 +71,7 @@ import app.glint.engine.AudioFormat
 import app.glint.engine.Chapter
 import app.glint.engine.Chapters
 import app.glint.engine.Clips
+import app.glint.engine.ErrorKind
 import app.glint.engine.CommandLine
 import app.glint.engine.CommandStore
 import app.glint.engine.CommandTemplate
@@ -838,8 +839,10 @@ private fun ProbeFailed(message: String?, onRetry: () -> Unit, modifier: Modifie
                 .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
+        // A known cause in plain words; otherwise only that the link could not be read.
+        val kind = ErrorKind.of(message)
         Text(
-            text = message ?: stringResource(R.string.probe_failed),
+            text = stringResource(if (kind == ErrorKind.Unknown) R.string.probe_failed else kind.message),
             color = MaterialTheme.colorScheme.error,
             fontSize = 13.5.sp,
             lineHeight = 19.sp,

@@ -97,82 +97,35 @@ object AppThemes {
             name = R.string.theme_chrome,
             accent = Color(0xFFB4C7FF),
             secondary = Color(0xFF8FB4FF),
-            background = Color(0xFF030406),
-            glass = Color(0xFF121923),
-            scrim = 0.55f,
-            artwork = { drawChrome() },
+            background = Color(0xFF020306),
+            glass = Color(0xFF10161F),
+            scrim = 0.35f,
+            artwork = { drawBundled(R.drawable.theme_chrome) },
         )
 
-    val Gold =
+    val Mercury =
         AppTheme(
-            id = "gold",
-            name = R.string.theme_gold,
-            accent = Color(0xFFFFD27A),
-            secondary = Color(0xFFFFB020),
-            background = Color(0xFF040302),
-            glass = Color(0xFF1C150A),
-            scrim = 0.55f,
-            artwork = { drawGold() },
-        )
-
-    val Aurora =
-        AppTheme(
-            id = "aurora",
-            name = R.string.theme_aurora,
-            accent = Color(0xFF7CF5C8),
-            secondary = Color(0xFF8B9CFF),
-            background = Color(0xFF010309),
-            glass = Color(0xFF0C1A22),
-            scrim = 0.4f,
-            artwork = { drawAurora() },
-        )
-
-    val Dunes =
-        AppTheme(
-            id = "dunes",
-            name = R.string.theme_dunes,
-            accent = Color(0xFFFFC089),
-            secondary = Color(0xFFFF9E7A),
-            background = Color(0xFF090616),
-            glass = Color(0xFF1E0F14),
-            scrim = 0.5f,
-            artwork = { drawDunes() },
-        )
-
-    val Ocean =
-        AppTheme(
-            id = "ocean",
-            name = R.string.theme_ocean,
-            accent = Color(0xFF7DE3F4),
-            secondary = Color(0xFF5EEAD4),
-            background = Color(0xFF01070F),
-            glass = Color(0xFF08202E),
-            scrim = 0.5f,
-            artwork = { drawOcean() },
-        )
-
-    val Nebula =
-        AppTheme(
-            id = "nebula",
-            name = R.string.theme_nebula,
-            accent = Color(0xFFE9A8FF),
-            secondary = Color(0xFFA78BFA),
-            background = Color(0xFF030208),
-            glass = Color(0xFF150C24),
-            scrim = 0.45f,
-            artwork = { drawNebula() },
-        )
-
-    val Midnight =
-        AppTheme(
-            id = "midnight",
-            name = R.string.theme_midnight,
-            accent = Color(0xFFC7D2FE),
-            secondary = Color(0xFF93A5F5),
+            id = "mercury",
+            name = R.string.theme_mercury,
+            accent = Color(0xFFE1E6EF),
+            secondary = Color(0xFFB7C0CE),
             background = Color(0xFF000000),
-            glass = Color(0xFF0E1016),
-            scrim = 0f,
-            artwork = { drawMidnight() },
+            glass = Color(0xFF121417),
+            scrim = 0.3f,
+            artwork = { drawBundled(R.drawable.theme_mercury) },
+        )
+
+    val Drop =
+        AppTheme(
+            id = "drop",
+            name = R.string.theme_drop,
+            accent = Color(0xFFDDE3EE),
+            secondary = Color(0xFFAEB6C4),
+            background = Color(0xFF000000),
+            glass = Color(0xFF111214),
+            // The drop sits in the middle; only a light shade keeps it from fading.
+            scrim = 0.15f,
+            artwork = { drawBundled(R.drawable.theme_drop) },
         )
 
     val Caustics =
@@ -215,7 +168,7 @@ object AppThemes {
 
     /** Add new themes to this list. A picture from the gallery ([PhotoBackground]) comes first. */
     val all: List<AppTheme> =
-        listOf(Chrome, Caustics, Zellige, Bokeh, Gold, Aurora, Dunes, Ocean, Nebula, Midnight)
+        listOf(Chrome, Mercury, Drop, Caustics, Zellige, Bokeh)
 
     /** The theme with this id, or the default for an unknown or removed id. */
     fun find(id: String?): AppTheme = all.firstOrNull { it.id == id } ?: Default

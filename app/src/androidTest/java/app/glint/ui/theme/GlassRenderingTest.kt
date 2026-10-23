@@ -174,8 +174,8 @@ class GlassRenderingTest {
     fun captureGoldMaterialHarnessWithRealSharedWidgets() {
         val captureView = AtomicReference<View>()
         compose.setContent {
-            CompositionLocalProvider(LocalAppTheme provides AppThemes.Gold) {
-                MaterialTheme(colorScheme = AppThemes.Gold.colors) {
+            CompositionLocalProvider(LocalAppTheme provides AppThemes.Zellige) {
+                MaterialTheme(colorScheme = AppThemes.Zellige.colors) {
                     val view = LocalView.current
                     SideEffect { captureView.set(view.rootView) }
                     GlassBackdrop(Modifier.fillMaxSize().testTag("glass-render-scene")) {
@@ -235,7 +235,7 @@ class GlassRenderingTest {
                                 Box(
                                     Modifier.size(66.dp).liquidGlass(
                                         CircleShape,
-                                        tint = AppThemes.Gold.accent.copy(alpha = 0.14f),
+                                        tint = AppThemes.Zellige.accent.copy(alpha = 0.14f),
                                     ),
                                     contentAlignment = Alignment.Center,
                                 ) {

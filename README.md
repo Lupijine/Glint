@@ -14,8 +14,9 @@
 </p>
 
 <p align="center">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" width="40%" alt="Commands: saved yt-dlp options, over the city lights theme">
-  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" width="40%" alt="Settings: theme picker and download defaults, over the zellige theme">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.jpg" width="31%" alt="Downloads: a Blender film trailer finished and a NASA video downloading">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg" width="31%" alt="Commands: saved yt-dlp options, over the city lights theme">
+  <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg" width="31%" alt="Settings: theme picker and download defaults, over the zellige theme">
 </p>
 
 ## Features
@@ -52,14 +53,15 @@
 - Save to Download, to Movies and Music, or to any folder, memory cards included.
 - Embedded subtitles and automatic captions, cover art and metadata, SponsorBlock.
 - Sign in to sites inside the app, or import cookies.txt, for private and age-restricted videos.
-- Proxy, speed limit, and notifications when downloads finish or fail, with the full error behind
-  every failure.
+- Proxy, speed limit, and notifications when downloads finish or fail. A failed download says
+  what went wrong in plain words, with yt-dlp's full output underneath.
 
 **Look**
 
 - Liquid glass: GPU lens refraction on Android 13 and newer, live frosted glass on Android 12, and
   translucent glass on older versions.
-- Ten themes, or your own picture as the background; the glass takes its colours from it.
+- Six themes, three of them liquid metal, or your own picture as the background; the glass takes
+  its colours from it.
 - The share sheet blurs the app behind it on Samsung Galaxy phones and on phones with Android's
   window blur, and turns solid where blur is unavailable.
 - 30 languages. Glint follows the phone's language.

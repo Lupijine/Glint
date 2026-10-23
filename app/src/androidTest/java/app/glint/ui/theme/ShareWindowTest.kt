@@ -153,7 +153,7 @@ class ShareWindowTest {
                 LocalGlassBackdrop provides source,
                 LocalLiveGlassBackdrop provides source,
             ) {
-                MaterialTheme(colorScheme = AppThemes.Gold.colors) {
+                MaterialTheme(colorScheme = AppThemes.Zellige.colors) {
                     ShareGlassDialog(onDismissRequest = {}, windowBlurEnabledOverride = available.value) {
                         val window = (LocalView.current.parent as DialogWindowProvider).window
                         val nativeBlur = LocalWindowBlurred.current

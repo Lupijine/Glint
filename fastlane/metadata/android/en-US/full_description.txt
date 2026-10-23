@@ -20,4 +20,4 @@ A searchable library of finished files to play, share or delete. Save your own y
 Default quality and format, a most-compatible mode, faster downloads, folders by type or site, saving to any folder including memory cards, subtitles, cover art and metadata, SponsorBlock, signing in to sites or importing cookies.txt, proxy and speed limit. yt-dlp updates from inside the app.
 
 <b>Look</b>
-Liquid glass with real lens refraction on Android 13 and newer. Ten themes, or your own picture as the background. 30 languages.
+Liquid glass with real lens refraction on Android 13 and newer. Six themes, or your own picture as the background. 30 languages.

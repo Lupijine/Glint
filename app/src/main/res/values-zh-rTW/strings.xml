@@ -27,7 +27,6 @@
     <string name="status_preparing">正在取得影片資訊…</string>
     <string name="status_completed">已完成</string>
     <string name="status_canceled">已取消</string>
-    <string name="status_failed">失敗</string>
     <string name="engine_starting">正在準備下載引擎… 首次啟動需要一點時間。</string>
     <string name="engine_failed">下載引擎無法啟動：%s</string>
     <string name="action_cancel">取消</string>
@@ -221,12 +220,6 @@
     <string name="section_appearance">外觀</string>
     <string name="theme">主題</string>
     <string name="theme_chrome">鉻</string>
-    <string name="theme_gold">金</string>
-    <string name="theme_aurora">極光</string>
-    <string name="theme_dunes">沙丘</string>
-    <string name="theme_ocean">海洋</string>
-    <string name="theme_nebula">星雲</string>
-    <string name="theme_midnight">午夜</string>
     <string name="download_added">已加入下載</string>
     <string name="crash_title">Glint 意外關閉</string>
     <string name="crash_body">這是上次發生的錯誤。複製並傳送，以便修正問題。</string>
@@ -237,6 +230,22 @@
     <string name="photo_pick">選擇圖片</string>
     <string name="photo_failed">無法使用這張圖片。</string>
     <string name="photo_change_hint">再次輕觸你的圖片即可選擇另一張。</string>
+    <string name="error_network">連線已中斷。輕觸重試即可從中斷處繼續。</string>
+    <string name="error_rate_limited">這個網站暫時限制了下載。請稍後再試。</string>
+    <string name="error_bot_check">YouTube 想確認你不是機器人。請在設定中登入 YouTube，然後重試。</string>
+    <string name="error_sign_in">這部影片需要已登入的帳戶。請在設定中登入該網站，然後重試。</string>
+    <string name="error_unavailable">這部影片已無法觀看。</string>
+    <string name="error_geo">這部影片在你所在的國家/地區無法觀看。</string>
+    <string name="error_not_started">這部影片尚未開始。開始直播後再重試。</string>
+    <string name="error_drm">這部影片受複製保護，無法下載。</string>
+    <string name="error_unsupported">Glint 無法從這個連結下載。</string>
+    <string name="error_format">所選畫質已不再提供。請重新下載並選擇其他畫質。</string>
+    <string name="error_storage">手機儲存空間已滿。</string>
+    <string name="error_outdated">網站可能已變更。請在設定中更新 yt-dlp，然後重試。</string>
+    <string name="error_unknown">發生問題。輕觸即可查看詳細資訊。</string>
+    <string name="error_details">詳細資訊</string>
+    <string name="theme_mercury">水銀</string>
+    <string name="theme_drop">水滴</string>
     <plurals name="notification_active">
         <item quantity="other">正在下載 %d 項</item>
     </plurals>

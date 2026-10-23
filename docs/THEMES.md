@@ -1,8 +1,10 @@
 # Glint glass themes
 
-A theme supplies the artwork behind the glass and its palette. The drawn themes are Chrome,
-Light on water (`caustics`), Zellige, City lights (`bokeh`), Gold, Aurora, Dunes, Ocean, Nebula
-and Midnight; their IDs are stable.
+A theme supplies the artwork behind the glass and its palette. Three themes are pictures that
+ship with the app: Chrome, Mercury and Drop (`res/drawable-nodpi/theme_*.webp`, drawn by
+`BundledArt.kt`, which decodes each once and keeps a small copy for the previews). Three are
+drawn in code: Light on water (`caustics`), Zellige and City lights (`bokeh`). Theme IDs are
+stable; a saved ID that no longer exists falls back to Chrome.
 
 People can also use their own picture (`PhotoBackground.kt`, id `photo`). It is copied into
 the app at screen size, the right way up, and the theme's colours are taken from it: its most
@@ -58,7 +60,8 @@ Paths are relative to `app/src/main/java/app/glint/`.
 
 | File | Purpose |
 | --- | --- |
-| `ui/theme/Artworks.kt` | Original artwork and density-safe recording helpers |
+| `ui/theme/Artworks.kt` | Drawn artwork, pictures, and density-safe recording helpers |
+| `ui/theme/BundledArt.kt` | Decodes the pictures that ship with the app, full size and small |
 | `ui/theme/Themes.kt` | Stable theme IDs, colours and translucent material fills |
 | `ui/theme/Glass.kt` | Wallpaper/live sources, sampling, clipping and fallbacks |
 | `ui/theme/GlassRefraction.kt` | Reusable GPU lens, geometric displacement and edge lighting |
@@ -69,8 +72,10 @@ Paths are relative to `app/src/main/java/app/glint/`.
 
 ## Adding a theme
 
-1. Draw an extension on `DrawScope` in `Artworks.kt`. Use fractional positions for large shapes
-   and `dp` for fine details. Keep the central content area readable.
+1. Either add a dark picture as `res/drawable-nodpi/theme_<id>.webp` (about 1000 × 1800, with
+   its bright parts near the edges) and draw it with `drawBundled`, or draw an extension on
+   `DrawScope` in `Artworks.kt`, using fractional positions for large shapes and `dp` for fine
+   details. Keep the central content area readable.
 2. Register an `AppTheme` in `Themes.kt` and add it to `AppThemes.all`. Keep its ID stable after
    release, choose a light accent with a dark `onPrimary`, and set a dark background/glass tint.
 3. Add its name to `res/values/strings.xml`, and to the `values-*` translations you can write;
@@ -100,7 +105,7 @@ viewport colours still match the wallpaper, including below the old sample's sou
 Native share-window tests cover bounded geometry, rounded backing, text input, capability and
 effects changes, opaque fallback, source isolation, outside/Back dismissal, and the actual
 download sheet's close action. Emulator checks cannot verify an OEM compositor's blur policy.
-A Gold-theme render harness uses shared UI controls for visual inspection. Test images are diagnostic renders,
+A gold-accented (Zellige) render harness uses shared UI controls for visual inspection. Test images are diagnostic renders,
 not a complete application walkthrough.
 
 The pinned Compose version needs an explicit independent density inside the live recording

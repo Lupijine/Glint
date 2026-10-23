@@ -27,7 +27,6 @@
     <string name="status_preparing">동영상 정보를 가져오는 중…</string>
     <string name="status_completed">완료됨</string>
     <string name="status_canceled">취소됨</string>
-    <string name="status_failed">실패</string>
     <string name="engine_starting">다운로드 엔진을 준비하는 중… 처음 실행할 때는 시간이 조금 걸립니다.</string>
     <string name="engine_failed">다운로드 엔진을 시작할 수 없습니다: %s</string>
     <string name="action_cancel">취소</string>
@@ -221,12 +220,6 @@
     <string name="section_appearance">모양</string>
     <string name="theme">테마</string>
     <string name="theme_chrome">크롬</string>
-    <string name="theme_gold">골드</string>
-    <string name="theme_aurora">오로라</string>
-    <string name="theme_dunes">모래 언덕</string>
-    <string name="theme_ocean">바다</string>
-    <string name="theme_nebula">성운</string>
-    <string name="theme_midnight">한밤</string>
     <string name="download_added">다운로드에 추가됨</string>
     <string name="crash_title">Glint가 예기치 않게 종료되었습니다</string>
     <string name="crash_body">지난번에 발생한 오류입니다. 복사해서 보내 주시면 문제를 고칠 수 있습니다.</string>
@@ -237,6 +230,22 @@
     <string name="photo_pick">사진 선택</string>
     <string name="photo_failed">이 사진은 사용할 수 없습니다.</string>
     <string name="photo_change_hint">내 사진을 다시 탭하면 다른 사진을 고를 수 있습니다.</string>
+    <string name="error_network">연결이 끊겼습니다. 다시 시도하면 멈춘 곳부터 이어서 받습니다.</string>
+    <string name="error_rate_limited">사이트에서 지금 다운로드를 제한하고 있습니다. 나중에 다시 시도하세요.</string>
+    <string name="error_bot_check">YouTube에서 봇이 아닌지 확인하려고 합니다. 설정에서 YouTube에 로그인한 뒤 다시 시도하세요.</string>
+    <string name="error_sign_in">이 동영상은 로그인한 계정이 필요합니다. 설정에서 사이트에 로그인한 뒤 다시 시도하세요.</string>
+    <string name="error_unavailable">이 동영상은 더 이상 볼 수 없습니다.</string>
+    <string name="error_geo">이 동영상은 사용자의 국가에서 볼 수 없습니다.</string>
+    <string name="error_not_started">이 동영상은 아직 시작되지 않았습니다. 라이브가 시작되면 다시 시도하세요.</string>
+    <string name="error_drm">이 동영상은 복사 방지되어 있어 다운로드할 수 없습니다.</string>
+    <string name="error_unsupported">Glint는 이 링크에서 다운로드할 수 없습니다.</string>
+    <string name="error_format">선택한 화질은 더 이상 제공되지 않습니다. 다시 다운로드하고 다른 화질을 선택하세요.</string>
+    <string name="error_storage">휴대전화 저장 공간이 부족합니다.</string>
+    <string name="error_outdated">사이트가 변경되었을 수 있습니다. 설정에서 yt-dlp를 업데이트한 뒤 다시 시도하세요.</string>
+    <string name="error_unknown">문제가 발생했습니다. 탭하면 자세한 내용을 볼 수 있습니다.</string>
+    <string name="error_details">자세히</string>
+    <string name="theme_mercury">수은</string>
+    <string name="theme_drop">물방울</string>
     <plurals name="notification_active">
         <item quantity="other">%d개 다운로드 중</item>
     </plurals>

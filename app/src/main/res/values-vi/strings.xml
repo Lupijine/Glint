@@ -27,7 +27,6 @@
     <string name="status_preparing">Đang lấy thông tin video…</string>
     <string name="status_completed">Đã xong</string>
     <string name="status_canceled">Đã hủy</string>
-    <string name="status_failed">Thất bại</string>
     <string name="engine_starting">Đang chuẩn bị bộ tải… lần mở đầu tiên sẽ mất một lúc.</string>
     <string name="engine_failed">Không thể khởi động bộ tải: %s</string>
     <string name="action_cancel">Hủy</string>
@@ -221,12 +220,6 @@
     <string name="section_appearance">Giao diện</string>
     <string name="theme">Chủ đề</string>
     <string name="theme_chrome">Chrome</string>
-    <string name="theme_gold">Vàng</string>
-    <string name="theme_aurora">Cực quang</string>
-    <string name="theme_dunes">Đồi cát</string>
-    <string name="theme_ocean">Đại dương</string>
-    <string name="theme_nebula">Tinh vân</string>
-    <string name="theme_midnight">Nửa đêm</string>
     <string name="download_added">Đã thêm vào tải xuống</string>
     <string name="crash_title">Glint đã đóng đột ngột</string>
     <string name="crash_body">Đây là lỗi đã xảy ra lần trước. Hãy sao chép và gửi để khắc phục.</string>
@@ -237,6 +230,22 @@
     <string name="photo_pick">Chọn ảnh</string>
     <string name="photo_failed">Không thể dùng ảnh này.</string>
     <string name="photo_change_hint">Nhấn lại vào ảnh của bạn để chọn ảnh khác.</string>
+    <string name="error_network">Kết nối bị ngắt. Thử lại để tiếp tục từ chỗ đã dừng.</string>
+    <string name="error_rate_limited">Trang web đang giới hạn lượt tải xuống. Hãy thử lại sau.</string>
+    <string name="error_bot_check">YouTube muốn xác nhận bạn không phải là bot. Đăng nhập YouTube trong Cài đặt rồi thử lại.</string>
+    <string name="error_sign_in">Video này cần tài khoản đã đăng nhập. Đăng nhập trang web trong Cài đặt rồi thử lại.</string>
+    <string name="error_unavailable">Video này không còn khả dụng.</string>
+    <string name="error_geo">Video này không khả dụng ở quốc gia của bạn.</string>
+    <string name="error_not_started">Video này chưa bắt đầu. Hãy thử lại khi phát trực tiếp.</string>
+    <string name="error_drm">Video này được bảo vệ chống sao chép và không thể tải xuống.</string>
+    <string name="error_unsupported">Glint không thể tải xuống từ liên kết này.</string>
+    <string name="error_format">Chất lượng đã chọn không còn được cung cấp. Hãy tải lại và chọn chất lượng khác.</string>
+    <string name="error_storage">Điện thoại đã hết dung lượng lưu trữ.</string>
+    <string name="error_outdated">Có thể trang web đã thay đổi. Cập nhật yt-dlp trong Cài đặt rồi thử lại.</string>
+    <string name="error_unknown">Đã xảy ra lỗi. Nhấn để xem chi tiết.</string>
+    <string name="error_details">Chi tiết</string>
+    <string name="theme_mercury">Thủy ngân</string>
+    <string name="theme_drop">Giọt</string>
     <plurals name="notification_active">
         <item quantity="other">Đang tải %d mục</item>
     </plurals>

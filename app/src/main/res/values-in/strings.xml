@@ -27,7 +27,6 @@
     <string name="status_preparing">Mengambil info video…</string>
     <string name="status_completed">Selesai</string>
     <string name="status_canceled">Dibatalkan</string>
-    <string name="status_failed">Gagal</string>
     <string name="engine_starting">Menyiapkan mesin unduhan… pembukaan pertama butuh sebentar.</string>
     <string name="engine_failed">Mesin unduhan tidak dapat dimulai: %s</string>
     <string name="action_cancel">Batal</string>
@@ -221,12 +220,6 @@
     <string name="section_appearance">Tampilan</string>
     <string name="theme">Tema</string>
     <string name="theme_chrome">Krom</string>
-    <string name="theme_gold">Emas</string>
-    <string name="theme_aurora">Aurora</string>
-    <string name="theme_dunes">Bukit pasir</string>
-    <string name="theme_ocean">Samudra</string>
-    <string name="theme_nebula">Nebula</string>
-    <string name="theme_midnight">Tengah malam</string>
     <string name="download_added">Ditambahkan ke unduhan</string>
     <string name="crash_title">Glint tertutup tiba-tiba</string>
     <string name="crash_body">Inilah yang salah terakhir kali. Salin dan kirim untuk memperbaiki masalahnya.</string>
@@ -237,6 +230,22 @@
     <string name="photo_pick">Pilih gambar</string>
     <string name="photo_failed">Gambar ini tidak dapat digunakan.</string>
     <string name="photo_change_hint">Ketuk gambar Anda lagi untuk memilih yang lain.</string>
+    <string name="error_network">Koneksi terputus. Coba lagi untuk melanjutkan dari titik terakhir.</string>
+    <string name="error_rate_limited">Situs sedang membatasi unduhan. Coba lagi nanti.</string>
+    <string name="error_bot_check">YouTube ingin memastikan Anda bukan bot. Login ke YouTube di Setelan, lalu coba lagi.</string>
+    <string name="error_sign_in">Video ini memerlukan akun yang sudah login. Login ke situs di Setelan, lalu coba lagi.</string>
+    <string name="error_unavailable">Video ini sudah tidak tersedia.</string>
+    <string name="error_geo">Video ini tidak tersedia di negara Anda.</string>
+    <string name="error_not_started">Video ini belum dimulai. Coba lagi saat sudah tayang langsung.</string>
+    <string name="error_drm">Video ini dilindungi dari penyalinan dan tidak dapat diunduh.</string>
+    <string name="error_unsupported">Glint tidak dapat mengunduh dari link ini.</string>
+    <string name="error_format">Kualitas yang dipilih sudah tidak tersedia. Unduh lagi dan pilih yang lain.</string>
+    <string name="error_storage">Ruang penyimpanan ponsel sudah penuh.</string>
+    <string name="error_outdated">Situs mungkin telah berubah. Perbarui yt-dlp di Setelan, lalu coba lagi.</string>
+    <string name="error_unknown">Terjadi kesalahan. Ketuk untuk melihat detail.</string>
+    <string name="error_details">Detail</string>
+    <string name="theme_mercury">Raksa</string>
+    <string name="theme_drop">Tetesan</string>
     <plurals name="notification_active">
         <item quantity="other">%d unduhan berjalan</item>
     </plurals>

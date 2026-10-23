@@ -27,7 +27,6 @@
     <string name="status_preparing">กำลังดึงข้อมูลวิดีโอ…</string>
     <string name="status_completed">เสร็จแล้ว</string>
     <string name="status_canceled">ยกเลิกแล้ว</string>
-    <string name="status_failed">ล้มเหลว</string>
     <string name="engine_starting">กำลังเตรียมตัวดาวน์โหลด… การเปิดครั้งแรกใช้เวลาสักครู่</string>
     <string name="engine_failed">ตัวดาวน์โหลดเริ่มทำงานไม่ได้: %s</string>
     <string name="action_cancel">ยกเลิก</string>
@@ -221,12 +220,6 @@
     <string name="section_appearance">รูปลักษณ์</string>
     <string name="theme">ธีม</string>
     <string name="theme_chrome">โครม</string>
-    <string name="theme_gold">ทอง</string>
-    <string name="theme_aurora">แสงเหนือ</string>
-    <string name="theme_dunes">เนินทราย</string>
-    <string name="theme_ocean">มหาสมุทร</string>
-    <string name="theme_nebula">เนบิวลา</string>
-    <string name="theme_midnight">เที่ยงคืน</string>
     <string name="download_added">เพิ่มในรายการดาวน์โหลดแล้ว</string>
     <string name="crash_title">Glint ปิดไปโดยไม่คาดคิด</string>
     <string name="crash_body">นี่คือสิ่งที่ผิดพลาดครั้งที่แล้ว คัดลอกแล้วส่งเพื่อให้แก้ปัญหาได้</string>
@@ -237,6 +230,22 @@
     <string name="photo_pick">เลือกรูป</string>
     <string name="photo_failed">ใช้รูปนี้ไม่ได้</string>
     <string name="photo_change_hint">แตะรูปของคุณอีกครั้งเพื่อเลือกรูปอื่น</string>
+    <string name="error_network">การเชื่อมต่อขาดหาย ลองอีกครั้งเพื่อดาวน์โหลดต่อจากจุดที่หยุด</string>
+    <string name="error_rate_limited">เว็บไซต์กำลังจำกัดการดาวน์โหลดอยู่ ลองอีกครั้งภายหลัง</string>
+    <string name="error_bot_check">YouTube ต้องการยืนยันว่าคุณไม่ใช่บอท ลงชื่อเข้าใช้ YouTube ในการตั้งค่า แล้วลองอีกครั้ง</string>
+    <string name="error_sign_in">วิดีโอนี้ต้องใช้บัญชีที่ลงชื่อเข้าใช้ ลงชื่อเข้าใช้เว็บไซต์ในการตั้งค่า แล้วลองอีกครั้ง</string>
+    <string name="error_unavailable">วิดีโอนี้ไม่มีให้ดูแล้ว</string>
+    <string name="error_geo">วิดีโอนี้ไม่มีให้บริการในประเทศของคุณ</string>
+    <string name="error_not_started">วิดีโอนี้ยังไม่เริ่ม ลองอีกครั้งเมื่อถ่ายทอดสดแล้ว</string>
+    <string name="error_drm">วิดีโอนี้มีการป้องกันการคัดลอกและดาวน์โหลดไม่ได้</string>
+    <string name="error_unsupported">Glint ดาวน์โหลดจากลิงก์นี้ไม่ได้</string>
+    <string name="error_format">คุณภาพที่เลือกไม่มีให้แล้ว ดาวน์โหลดอีกครั้งและเลือกแบบอื่น</string>
+    <string name="error_storage">พื้นที่เก็บข้อมูลในโทรศัพท์เต็มแล้ว</string>
+    <string name="error_outdated">เว็บไซต์อาจเปลี่ยนไป อัปเดต yt-dlp ในการตั้งค่า แล้วลองอีกครั้ง</string>
+    <string name="error_unknown">เกิดข้อผิดพลาด แตะเพื่อดูรายละเอียด</string>
+    <string name="error_details">รายละเอียด</string>
+    <string name="theme_mercury">ปรอท</string>
+    <string name="theme_drop">หยด</string>
     <plurals name="notification_active">
         <item quantity="other">กำลังดาวน์โหลด %d รายการ</item>
     </plurals>

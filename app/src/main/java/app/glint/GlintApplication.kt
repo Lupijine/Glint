@@ -8,6 +8,7 @@ import app.glint.engine.Engine
 import app.glint.engine.FinishedNotifications
 import app.glint.engine.Following
 import app.glint.engine.SettingsStore
+import app.glint.ui.theme.BundledArt
 import app.glint.ui.theme.PhotoBackground
 
 class GlintApplication : Application() {
@@ -17,6 +18,7 @@ class GlintApplication : Application() {
         // Settings come first: the engine and downloads read them as they start.
         SettingsStore.initialize(this)
         // The picture background, when chosen, decodes while the rest of the app starts.
+        BundledArt.initialize(this)
         PhotoBackground.preload(this)
         CommandStore.initialize(this)
         CookieStore.initialize(this)

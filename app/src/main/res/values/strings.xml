@@ -32,7 +32,6 @@
     <string name="status_preparing">Getting video info…</string>
     <string name="status_completed">Completed</string>
     <string name="status_canceled">Canceled</string>
-    <string name="status_failed">Failed</string>
     <string name="engine_starting">Preparing the download engine… the first launch takes a moment.</string>
     <string name="engine_failed">The download engine could not start: %s</string>
     <string name="action_cancel">Cancel</string>
@@ -254,12 +253,6 @@
     <string name="section_appearance">Appearance</string>
     <string name="theme">Theme</string>
     <string name="theme_chrome">Chrome</string>
-    <string name="theme_gold">Gold</string>
-    <string name="theme_aurora">Aurora</string>
-    <string name="theme_dunes">Dunes</string>
-    <string name="theme_ocean">Ocean</string>
-    <string name="theme_nebula">Nebula</string>
-    <string name="theme_midnight">Midnight</string>
     <string name="download_added">Added to downloads</string>
     <string name="crash_title">Glint closed unexpectedly</string>
     <string name="crash_body">This is what went wrong last time. Copy it and send it to fix the problem.</string>
@@ -270,5 +263,21 @@
     <string name="photo_pick">Choose a picture</string>
     <string name="photo_failed">This picture could not be used.</string>
     <string name="photo_change_hint">Tap your picture again to choose another one.</string>
+    <string name="error_network">The connection dropped. Retry to continue where it stopped.</string>
+    <string name="error_rate_limited">The site is limiting downloads for now. Try again later.</string>
+    <string name="error_bot_check">YouTube wants to check you’re not a bot. Sign in to YouTube in Settings, then retry.</string>
+    <string name="error_sign_in">This video needs a signed-in account. Sign in to the site in Settings, then retry.</string>
+    <string name="error_unavailable">This video is no longer available.</string>
+    <string name="error_geo">This video isn’t available in your country.</string>
+    <string name="error_not_started">This video hasn’t started yet. Retry once it’s live.</string>
+    <string name="error_drm">This video is copy-protected and can’t be downloaded.</string>
+    <string name="error_unsupported">Glint can’t download from this link.</string>
+    <string name="error_format">The chosen quality is no longer offered. Download it again and pick another.</string>
+    <string name="error_storage">The phone is out of storage space.</string>
+    <string name="error_outdated">The site may have changed. Update yt-dlp in Settings, then retry.</string>
+    <string name="error_unknown">Something went wrong. Tap for details.</string>
+    <string name="error_details">Details</string>
+    <string name="theme_mercury">Mercury</string>
+    <string name="theme_drop">Drop</string>
 </resources>
 

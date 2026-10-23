@@ -27,7 +27,6 @@
     <string name="status_preparing">動画の情報を取得中…</string>
     <string name="status_completed">完了</string>
     <string name="status_canceled">キャンセル済み</string>
-    <string name="status_failed">失敗</string>
     <string name="engine_starting">ダウンロードエンジンを準備中… 初回の起動には少し時間がかかります。</string>
     <string name="engine_failed">ダウンロードエンジンを起動できませんでした: %s</string>
     <string name="action_cancel">キャンセル</string>
@@ -221,12 +220,6 @@
     <string name="section_appearance">外観</string>
     <string name="theme">テーマ</string>
     <string name="theme_chrome">クローム</string>
-    <string name="theme_gold">ゴールド</string>
-    <string name="theme_aurora">オーロラ</string>
-    <string name="theme_dunes">砂丘</string>
-    <string name="theme_ocean">海</string>
-    <string name="theme_nebula">星雲</string>
-    <string name="theme_midnight">真夜中</string>
     <string name="download_added">ダウンロードに追加しました</string>
     <string name="crash_title">Glint が予期せず終了しました</string>
     <string name="crash_body">前回発生したエラーの内容です。コピーして送っていただければ修正できます。</string>
@@ -237,6 +230,22 @@
     <string name="photo_pick">画像を選ぶ</string>
     <string name="photo_failed">この画像は使用できません。</string>
     <string name="photo_change_hint">もう一度あなたの画像をタップすると、別の画像を選べます。</string>
+    <string name="error_network">接続が切れました。再試行すると、止まったところから再開します。</string>
+    <string name="error_rate_limited">サイトが現在ダウンロードを制限しています。しばらくしてからもう一度お試しください。</string>
+    <string name="error_bot_check">YouTube がボットでないことを確認しようとしています。設定で YouTube にログインしてから再試行してください。</string>
+    <string name="error_sign_in">この動画にはログインしたアカウントが必要です。設定でサイトにログインしてから再試行してください。</string>
+    <string name="error_unavailable">この動画はもう利用できません。</string>
+    <string name="error_geo">この動画はお住まいの国では利用できません。</string>
+    <string name="error_not_started">この動画はまだ始まっていません。ライブ配信が始まってから再試行してください。</string>
+    <string name="error_drm">この動画はコピー保護されているため、ダウンロードできません。</string>
+    <string name="error_unsupported">Glint はこのリンクからダウンロードできません。</string>
+    <string name="error_format">選んだ画質は提供されなくなりました。もう一度ダウンロードして別の画質を選んでください。</string>
+    <string name="error_storage">スマートフォンの空き容量がありません。</string>
+    <string name="error_outdated">サイトが変更された可能性があります。設定で yt-dlp を更新してから再試行してください。</string>
+    <string name="error_unknown">問題が発生しました。タップすると詳細が表示されます。</string>
+    <string name="error_details">詳細</string>
+    <string name="theme_mercury">水銀</string>
+    <string name="theme_drop">しずく</string>
     <plurals name="notification_active">
         <item quantity="other">%d 件をダウンロード中</item>
     </plurals>

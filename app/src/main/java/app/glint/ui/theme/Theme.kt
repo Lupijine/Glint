@@ -6,6 +6,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import app.glint.engine.SettingsStore
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -17,9 +18,10 @@ fun GlintTheme(content: @Composable () -> Unit) {
         remember { SettingsStore.settings.map { it.theme }.distinctUntilChanged() }
             .collectAsState(SettingsStore.current.theme)
     val photo by PhotoBackground.theme.collectAsState()
-    // Until the saved picture has loaded, the quiet Midnight theme stands in for it.
+    BundledArt.initialize(LocalContext.current)
+    // Until the saved picture has loaded, plain black stands in for it.
     val theme =
-        if (themeId == PhotoBackground.ThemeId) photo ?: AppThemes.Midnight else AppThemes.find(themeId)
+        if (themeId == PhotoBackground.ThemeId) photo ?: PhotoBackground.loading else AppThemes.find(themeId)
     CompositionLocalProvider(LocalAppTheme provides theme) {
         MaterialTheme(colorScheme = theme.colors, content = content)
     }

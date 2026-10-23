@@ -56,6 +56,7 @@ import app.glint.R
 import app.glint.engine.DownloadItem
 import android.text.format.DateUtils
 import app.glint.engine.DownloadManager
+import app.glint.engine.ErrorKind
 import app.glint.engine.FormatChoices
 import app.glint.engine.Following
 import app.glint.engine.MediaType
@@ -517,7 +518,15 @@ private fun SubscriptionCard(
             fontSize = 12.sp,
         )
         subscription.lastError?.let {
-            Text(text = it, color = MaterialTheme.colorScheme.error, fontSize = 12.sp, maxLines = 2, overflow = TextOverflow.Ellipsis)
+            // A known cause in plain words; otherwise only that the channel could not be read.
+            val kind = ErrorKind.of(it)
+            Text(
+                text = stringResource(if (kind == ErrorKind.Unknown) R.string.probe_failed else kind.message),
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 12.sp,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
         }
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (subscription.enabled) {

@@ -3,5 +3,5 @@ First public release.
 - APKs for 32-bit phones, x86_64 and a universal APK, besides 64-bit ARM
 - 30 languages, following the phone's language
 - Liquid glass with lens refraction on Android 13+
-- Ten themes, or your own picture as the background
+- Six themes, or your own picture as the background
 - A blurred share sheet on Samsung Galaxy phones
