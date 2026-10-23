@@ -91,6 +91,29 @@ class NetscapeCookiesTest {
     }
 
     @Test
+    fun `cookies from a mobile site are saved for the whole site, where yt-dlp looks`() {
+        val line = NetscapeCookies.fromBrowser("m.youtube.com", "SID=1", nowSeconds = 0).single()
+        assertEquals(".youtube.com", line.substringBefore('\t'))
+        assertEquals("youtube.com", NetscapeCookies.siteOf("M.YouTube.com"))
+        assertEquals("facebook.com", NetscapeCookies.siteOf("m.facebook.com"))
+        assertEquals("facebook.com", NetscapeCookies.siteOf("mbasic.facebook.com"))
+        assertEquals("instagram.com", NetscapeCookies.siteOf("www.instagram.com"))
+        // Real subdomains and two-part endings stay as they are.
+        assertEquals("bbc.co.uk", NetscapeCookies.siteOf("www.bbc.co.uk"))
+        assertEquals("music.youtube.com", NetscapeCookies.siteOf("music.youtube.com"))
+        assertEquals("m.com", NetscapeCookies.siteOf("m.com"))
+    }
+
+    @Test
+    fun `signing in again replaces cookies saved for the mobile subdomain`() {
+        val old = NetscapeCookies.merge("", listOf(".m.youtube.com\tTRUE\t/\tTRUE\t0\tOLD\t1"))
+        val merged = NetscapeCookies.merge(old, NetscapeCookies.fromBrowser("m.youtube.com", "NEW=1", nowSeconds = 0))
+        val lines = NetscapeCookies.lines(merged)
+        assertEquals(1, lines.size)
+        assertTrue(lines.single().startsWith(".youtube.com\t") && lines.single().contains("NEW"))
+    }
+
+    @Test
     fun `saving a site replaces only that site's cookies`() {
         val fresh = NetscapeCookies.fromBrowser("youtube.com", "NEW=1", nowSeconds = 0)
 

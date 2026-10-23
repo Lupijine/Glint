@@ -55,6 +55,11 @@ class ErrorKindTest {
         assertKind(ErrorKind.Format, "Requested format is not available. Use --list-formats for a list of available formats")
         assertKind(ErrorKind.Storage, "unable to write data: [Errno 28] No space left on device")
         assertKind(ErrorKind.Folder, "[Errno 13] Permission denied: '/storage/emulated/0/Download/Glint/a.mp4'")
+        assertKind(ErrorKind.Folder, "Could not save \"a.mp4\" to the chosen folder: could not create the file")
+        assertKind(
+            ErrorKind.Storage,
+            "Could not save \"a.mp4\" to the chosen folder: write failed: ENOSPC (No space left on device)",
+        )
         assertKind(ErrorKind.Outdated, "[youtube] abc: Unable to extract uploader id; please report this issue")
         assertKind(ErrorKind.Outdated, "unable to download video data: HTTP Error 403: Forbidden")
     }

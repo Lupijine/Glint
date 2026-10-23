@@ -43,6 +43,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -119,6 +120,9 @@ private enum class SheetKind(val label: Int) {
  * qualities with sizes, and a playlist lists its videos to pick from. Downloading never has to
  * wait for that: until the link is read, a preset quality is used.
  */
+/** Keeps a set of links across rotation, as a list a saved state can hold. */
+private val StringSetSaver = Saver<Set<String>, ArrayList<String>>(save = { ArrayList(it) }, restore = { it.toSet() })
+
 @Composable
 internal fun NewDownloadSheet(
     initialUrl: String,
@@ -143,7 +147,8 @@ internal fun NewDownloadSheet(
     var showAllFormats by rememberSaveable { mutableStateOf(false) }
     // The link these choices belong to, so a new link starts fresh but rotation does not.
     var choicesFor by rememberSaveable { mutableStateOf<String?>(null) }
-    var excluded by remember { mutableStateOf(emptySet<String>()) }
+    // Saved with the choices above: rotating must not bring back videos the user left out.
+    var excluded by rememberSaveable(stateSaver = StringSetSaver) { mutableStateOf(emptySet<String>()) }
     var probeState by remember { mutableStateOf<ProbeState>(ProbeState.Idle) }
     var probeAttempt by remember { mutableIntStateOf(0) }
     // Words typed instead of a link, once the user asks to search for them.

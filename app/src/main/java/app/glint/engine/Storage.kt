@@ -9,6 +9,7 @@ import android.provider.DocumentsContract
 import android.webkit.MimeTypeMap
 import androidx.documentfile.provider.DocumentFile
 import java.io.File
+import java.io.IOException
 
 /**
  * Where downloads are saved. Download and Movies/Music are written directly. A folder picked with
@@ -88,22 +89,22 @@ object Storage {
      * Copies a finished file into the picked folder, inside [folders]. Returns its document, or
      * null when the folder is gone or full. The provider adds " (1)" when the name is taken.
      */
-    fun copyToTree(context: Context, tree: Uri, folders: List<String>, source: File, displayName: String): Uri? {
-        var dir = DocumentFile.fromTreeUri(context, tree) ?: return null
+    fun copyToTree(context: Context, tree: Uri, folders: List<String>, source: File, displayName: String): Uri {
+        fun failed(reason: String): Nothing =
+            throw IOException("Could not save \"$displayName\" to the chosen folder: $reason")
+        var dir = DocumentFile.fromTreeUri(context, tree) ?: failed("the folder is not available")
         for (name in folders) {
-            dir = dir.findFile(name)?.takeIf { it.isDirectory } ?: dir.createDirectory(name) ?: return null
+            dir = dir.findFile(name)?.takeIf { it.isDirectory } ?: dir.createDirectory(name)
+                ?: failed("could not create the folder \"$name\"")
         }
-        val target = dir.createFile(mimeType(displayName), displayName) ?: return null
-        val copied =
-            runCatching {
-                    context.contentResolver.openOutputStream(target.uri)?.use { output ->
-                        source.inputStream().use { it.copyTo(output, 1 shl 16) }
-                    } != null
-                }
-                .getOrDefault(false)
-        if (!copied) {
+        val target = dir.createFile(mimeType(displayName), displayName) ?: failed("could not create the file")
+        try {
+            val output = context.contentResolver.openOutputStream(target.uri) ?: failed("could not open the file")
+            output.use { stream -> source.inputStream().use { it.copyTo(stream, 1 shl 16) } }
+        } catch (error: Exception) {
             target.delete()
-            return null
+            if (error is IOException && error.message?.contains("chosen folder") == true) throw error
+            failed(error.message ?: error.javaClass.simpleName)
         }
         return target.uri
     }

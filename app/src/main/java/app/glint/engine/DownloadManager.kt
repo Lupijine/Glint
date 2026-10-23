@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import java.io.File
+import java.io.IOException
 import java.util.Locale
 import java.util.UUID
 import kotlinx.coroutines.CancellationException
@@ -548,18 +549,27 @@ object DownloadManager {
         val saved: List<Saved> =
             if (target.tree != null) {
                 update(attempt) { it.copy(status = DownloadItem.Status.Saving, speed = "", etaSeconds = -1) }
-                reported.map { file ->
-                    val name = DownloadOutput.finalName(file.name, item.id) { false }
-                    val document =
-                        if (file.startsWith(dir.canonicalFile)) {
-                            Storage.copyToTree(appContext, target.tree, target.treeFolders, file, name)
-                        } else null
-                    // A file outside Glint's staging folder was placed by the command itself.
-                    if (document != null) file.delete()
-                    if (document != null) Saved(path = null, uri = document) else Saved(path = file, uri = null)
-                }
+                val failures = mutableListOf<String>()
+                val copied =
+                    reported.map { file ->
+                        // A file outside Glint's staging folder was placed by the command itself.
+                        if (!file.startsWith(dir.canonicalFile)) return@map Saved(path = file, uri = null)
+                        val name = DownloadOutput.finalName(file.name, item.id) { false }
+                        try {
+                            val document = Storage.copyToTree(appContext, target.tree, target.treeFolders, file, name)
+                            file.delete()
+                            Saved(path = null, uri = document)
+                        } catch (error: IOException) {
+                            failures += error.message ?: "Could not save \"$name\" to the chosen folder"
+                            Saved(path = file, uri = null)
+                        }
+                    }
+                // The staging folder is only cleared after a full save, so nothing is lost: the
+                // download fails with the reason, and trying again copies the kept file.
+                if (failures.isNotEmpty()) throw IOException(failures.joinToString("\n"))
+                copied
             } else {
-                reported.map { Saved(path = rename(file = it, itemId = item.id), uri = null) }
+                reported.map { Saved(path = DownloadOutput.moveToFinalName(file = it, itemId = item.id), uri = null) }
             }
         ensureCurrent(attempt)
         val last = saved.lastOrNull()
@@ -597,13 +607,4 @@ object DownloadManager {
     }
 
     private class Saved(val path: File?, val uri: Uri?)
-
-    /** Gives a finished file its clean name in the same folder; keeps the old name if renaming fails. */
-    private fun rename(file: File, itemId: String): File {
-        val parent = file.parentFile ?: return file
-        val name = DownloadOutput.finalName(file.name, itemId) { File(parent, it).exists() }
-        if (name == file.name) return file
-        val target = File(parent, name)
-        return if (file.renameTo(target)) target else file
-    }
 }

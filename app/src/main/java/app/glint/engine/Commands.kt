@@ -70,12 +70,28 @@ object NetscapeCookies {
     /** The host a cookie line belongs to, without a leading dot or HttpOnly marker. */
     fun domainOf(line: String): String = line.removePrefix("#HttpOnly_").substringBefore('\t').trimStart('.').lowercase()
 
+    /** Prefixes of the mobile and desktop front doors of a site, which share its sign-in. */
+    private val FrontDoors = listOf("www.", "m.", "mobile.", "mbasic.", "touch.", "web.")
+
     /**
-     * Cookies as a browser reports them ("a=1; b=2") for [host], valid for its subdomains too.
+     * The site [host] belongs to: m.youtube.com and www.youtube.com are both youtube.com. Sign-in
+     * cookies are set for the whole site, and yt-dlp asks for pages on www, not on m.
+     */
+    fun siteOf(host: String): String {
+        var site = host.lowercase().trim().trimStart('.')
+        while (true) {
+            val prefix = FrontDoors.firstOrNull { site.startsWith(it) && site.count { c -> c == '.' } >= 2 } ?: break
+            site = site.removePrefix(prefix)
+        }
+        return site
+    }
+
+    /**
+     * Cookies as a browser reports them ("a=1; b=2") for [host], valid for its whole site.
      * They are given a year to live, since a browser does not say when they expire.
      */
     fun fromBrowser(host: String, cookieHeader: String, nowSeconds: Long): List<String> {
-        val domain = "." + host.lowercase().removePrefix("www.").trimStart('.')
+        val domain = "." + siteOf(host)
         val expires = nowSeconds + 365L * 24 * 60 * 60
         return cookieHeader.split(';').mapNotNull { pair ->
             val name = pair.substringBefore('=').trim()

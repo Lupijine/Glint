@@ -52,6 +52,23 @@ internal object DownloadOutput {
     }
 
     /**
+     * Gives a finished file its clean name in the same folder; keeps the old name if renaming
+     * fails. Choosing the name and renaming happen under one lock, so two downloads that finish
+     * at once with the same title cannot pick the same free name, and one never replaces the other.
+     */
+    fun moveToFinalName(file: File, itemId: String): File =
+        synchronized(renameLock) {
+            val parent = file.parentFile ?: return file
+            val name = finalName(file.name, itemId) { File(parent, it).exists() }
+            if (name == file.name) return file
+            val target = File(parent, name)
+            if (target.exists()) return file
+            if (file.renameTo(target)) target else file
+        }
+
+    private val renameLock = Any()
+
+    /**
      * The folders inside the download location for one download: by type or site when chosen,
      * then the playlist's own folder. [byTypeFolders] is off where the location already splits
      * videos from audio, such as Movies and Music.

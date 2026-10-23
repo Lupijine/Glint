@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import app.glint.engine.CookieStore
+import app.glint.engine.NetscapeCookies
 import app.glint.ui.ChoiceRow
 import app.glint.ui.GlassIconButton
 import app.glint.ui.GlassPill
@@ -134,7 +135,7 @@ private fun SignInScreen(onDone: () -> Unit) {
                         CookieManager.getInstance().flush()
                         val saved = if (host.isEmpty()) 0 else CookieStore.saveFromBrowser(host, header)
                         if (saved > 0) {
-                            val message = context.getString(R.string.cookies_saved, host.removePrefix("www."))
+                            val message = context.getString(R.string.cookies_saved, NetscapeCookies.siteOf(host))
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                             onDone()
                         } else {

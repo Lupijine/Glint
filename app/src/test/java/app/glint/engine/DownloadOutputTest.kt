@@ -161,6 +161,29 @@ class DownloadOutputTest {
         assertEquals("×2", DownloadOutput.withFileCount("", 2))
     }
 
+    @Test
+    fun `downloads with the same title finishing at once keep both files`() {
+        val directory = temporaryFolder.newFolder("same-title")
+        val sources = (1..8).map { i -> File(directory, "Song [id$i].mp3").apply { writeText("file $i") } }
+        val start = java.util.concurrent.CountDownLatch(1)
+        val results = java.util.Collections.synchronizedList(mutableListOf<File>())
+        val threads =
+            sources.mapIndexed { i, file ->
+                Thread {
+                    start.await()
+                    results += DownloadOutput.moveToFinalName(file, "id${i + 1}")
+                }
+            }
+        threads.forEach(Thread::start)
+        start.countDown()
+        threads.forEach(Thread::join)
+
+        assertEquals(8, results.map { it.name }.toSet().size)
+        assertEquals((1..8).map { "file $it" }.toSet(), results.map { it.readText() }.toSet())
+        assertTrue(File(directory, "Song.mp3").isFile)
+        assertTrue(File(directory, "Song (2).mp3").isFile)
+    }
+
     private fun markerFor(file: File): File =
         temporaryFolder.newFile("result.txt").apply { writeText("${file.absolutePath}\n") }
 }

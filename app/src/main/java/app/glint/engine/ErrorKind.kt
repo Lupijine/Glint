@@ -36,7 +36,7 @@ enum class ErrorKind(@StringRes val message: Int) {
                 Drm to Regex("\\bDRM\\b"),
                 Geo to Regex("in your country|geo.?restrict|not available in your (region|location)", Ignore),
                 Storage to Regex("No space left|Errno 28\\b|ENOSPC|disk (is )?full", Ignore),
-                Folder to Regex("Permission denied|Errno 13\\b|Read-only file system|EACCES|EROFS", Ignore),
+                Folder to Regex("Permission denied|Errno 13\\b|Read-only file system|EACCES|EROFS|to the chosen folder", Ignore),
                 Format to Regex("Requested format is not available", Ignore),
                 SignIn to
                     Regex(
