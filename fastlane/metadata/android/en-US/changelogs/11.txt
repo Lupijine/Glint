@@ -1,7 +1,8 @@
-First public release.
+First public release of Glint, a video and audio downloader built on yt-dlp.
 
-- APKs for 32-bit phones, x86_64 and a universal APK, besides 64-bit ARM
-- 30 languages, following the phone's language
-- Liquid glass with lens refraction on Android 13+
-- Six themes, or your own picture as the background
-- A blurred share sheet on Samsung Galaxy phones
+- Download from thousands of sites, or share a link from any app
+- Playlists, chapters, trimming, subtitles and SponsorBlock
+- Follow channels: new videos download by themselves
+- Failed downloads say what went wrong in plain words
+- Liquid glass, six themes or your own picture
+- 30 languages
