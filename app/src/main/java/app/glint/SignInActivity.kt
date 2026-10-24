@@ -3,7 +3,9 @@ package app.glint
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
+import android.view.ContextThemeWrapper
 import android.webkit.CookieManager
+import android.webkit.WebResourceRequest
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -65,12 +67,32 @@ class SignInActivity : ComponentActivity() {
     }
 }
 
+/** How the sign-in browser presents itself to sites. */
+internal object SignInBrowser {
+    private val ChromeVersion = Regex("""Chrome/(\d+)""")
+
+    /**
+     * Chrome's own user agent on Android, with the browser's Chrome version: WebView adds "wv",
+     * "Version/4.0" and the build number, which sites read as "a browser inside an app".
+     */
+    fun chromeUserAgent(webViewAgent: String): String {
+        val major = ChromeVersion.find(webViewAgent)?.groupValues?.get(1) ?: "130"
+        return "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) " +
+            "Chrome/$major.0.0.0 Mobile Safari/537.36"
+    }
+
+    /** Pages the browser shows itself; anything else (fb://, intent://, market://) is another app. */
+    fun isWebPage(scheme: String?): Boolean = scheme?.lowercase() in WebSchemes
+
+    private val WebSchemes = setOf("https", "http", "about", "data", "blob")
+}
+
 private enum class Site(val label: String, val url: String) {
     YouTube("YouTube", "https://m.youtube.com/"),
     Instagram("Instagram", "https://www.instagram.com/accounts/login/"),
     TikTok("TikTok", "https://www.tiktok.com/login"),
     X("X", "https://x.com/i/flow/login"),
-    Facebook("Facebook", "https://m.facebook.com/"),
+    Facebook("Facebook", "https://m.facebook.com/login/"),
     Reddit("Reddit", "https://www.reddit.com/login/"),
     Vimeo("Vimeo", "https://vimeo.com/log_in"),
     Twitch("Twitch", "https://www.twitch.tv/login"),
@@ -166,11 +188,14 @@ private fun SignInScreen(onDone: () -> Unit) {
         AndroidView(
             modifier = Modifier.fillMaxWidth().weight(1f),
             factory = { context ->
-                WebView(context).apply {
+                // Sign-in pages are made light first. Glint's dark theme would ask them for dark
+                // mode, which some draw as light text on the browser's white background.
+                WebView(ContextThemeWrapper(context, android.R.style.Theme_Material_Light_NoActionBar)).apply {
                     settings.javaScriptEnabled = true
                     settings.domStorageEnabled = true
-                    // Some sign-in pages refuse embedded browsers that announce themselves.
-                    settings.userAgentString = settings.userAgentString.replace("; wv", "")
+                    // Some sign-in pages show nothing to browsers built into apps, so this one
+                    // introduces itself exactly as Chrome on Android does.
+                    settings.userAgentString = SignInBrowser.chromeUserAgent(settings.userAgentString)
                     CookieManager.getInstance().setAcceptCookie(true)
                     CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
                     webViewClient =
@@ -178,6 +203,11 @@ private fun SignInScreen(onDone: () -> Unit) {
                             override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
                                 canGoBack = view.canGoBack()
                             }
+
+                            // Sites try to hand over to their own app (fb://, intent://); staying
+                            // on the web page is what signing in here needs.
+                            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
+                                request.isForMainFrame && !SignInBrowser.isWebPage(request.url.scheme)
                         }
                     webChromeClient =
                         object : android.webkit.WebChromeClient() {
