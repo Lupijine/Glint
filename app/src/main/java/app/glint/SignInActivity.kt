@@ -265,7 +265,7 @@ private fun SignInScreen(onDone: () -> Unit) {
 
                                 // A crashed page must not take Glint down with it; choosing a site loads it again.
                                 override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
-                                    Log.w(SignInBrowser.Tag, "The page's renderer stopped (crashed: ${detail.didCrash()})")
+                                    Log.w(SignInBrowser.Tag, "The page's renderer stopped")
                                     loadError = "(renderer stopped)"
                                     rendererGone = true
                                     return true
