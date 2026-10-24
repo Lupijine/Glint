@@ -45,6 +45,10 @@ object Engine {
     /** The installed yt-dlp version, once known. */
     val version: StateFlow<String?> = mutableVersion.asStateFlow()
 
+    private val mutableGalleryVersion = MutableStateFlow<String?>(null)
+    /** The installed gallery-dl version, the second downloader, once known. */
+    val galleryVersion: StateFlow<String?> = mutableGalleryVersion.asStateFlow()
+
     private val mutableLastUpdate = MutableStateFlow<UpdateResult?>(null)
     val lastUpdate: StateFlow<UpdateResult?> = mutableLastUpdate.asStateFlow()
 
@@ -54,6 +58,8 @@ object Engine {
 
     fun initialize(context: Context) {
         appContext = context.applicationContext
+        GalleryDl.initialize(appContext)
+        mutableGalleryVersion.value = GalleryDl.version() ?: bundledGalleryVersion()
         scope.launch {
             val started = runCatching {
                 YoutubeDL.init(appContext)
@@ -70,10 +76,21 @@ object Engine {
             }
             mutableVersion.value = runCatching { YoutubeDL.versionName(appContext) }.getOrNull()
             mutableState.value = State.Ready
+            // gallery-dl is only needed when yt-dlp fails, so it updates after downloads can start.
+            if (SettingsStore.current.updateOnLaunch) updateGallery()
         }
     }
 
-    /** Updates yt-dlp now, from the channel chosen in settings. */
+    private fun bundledGalleryVersion(): String? =
+        runCatching { appContext.assets.open("gallery-dl/version.txt").bufferedReader().use { it.readText().trim() } }.getOrNull()
+
+    private suspend fun updateGallery(): Boolean {
+        val updated = runCatching { GalleryDl.update() }.getOrDefault(false)
+        mutableGalleryVersion.value = GalleryDl.version() ?: mutableGalleryVersion.value
+        return updated
+    }
+
+    /** Updates yt-dlp now, from the channel chosen in settings, and gallery-dl with it. */
     fun updateNow() {
         if (state.value != State.Ready) return
         if (DownloadManager.items.value.any { it.isActive }) {
@@ -83,6 +100,9 @@ object Engine {
         scope.launch {
             mutableState.value = State.Updating
             updateLocked()
+            if (updateGallery() && mutableLastUpdate.value == UpdateResult.UpToDate) {
+                mutableLastUpdate.value = UpdateResult.Updated
+            }
             mutableVersion.value = runCatching { YoutubeDL.versionName(appContext) }.getOrNull()
             mutableState.value = State.Ready
         }

@@ -68,6 +68,11 @@ internal object DownloadOutput {
 
     private val renameLock = Any()
 
+    private val PictureExtensions = setOf("jpg", "jpeg", "png", "webp", "gif", "avif", "heic", "bmp")
+
+    /** True for a picture file, which can be its own thumbnail. */
+    fun isPicture(fileName: String): Boolean = fileName.substringAfterLast('.', "").lowercase() in PictureExtensions
+
     /**
      * The folders inside the download location for one download: by type or site when chosen,
      * then the playlist's own folder. [byTypeFolders] is off where the location already splits

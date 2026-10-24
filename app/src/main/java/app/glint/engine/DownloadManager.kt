@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
 import com.yausername.youtubedl_android.YoutubeDL
+import com.yausername.youtubedl_android.YoutubeDLException
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import java.io.File
 import java.io.IOException
@@ -415,8 +416,11 @@ object DownloadManager {
                         try {
                             fetchInfo(item, attempt)
                         } catch (error: Exception) {
-                            // A command can handle links the details step cannot, such as playlists.
-                            if (item.customArgs == null || error is CancellationException) throw error
+                            if (error is CancellationException) throw error
+                            // A command can handle links the details step cannot, such as playlists,
+                            // and another way (gallery-dl, the hidden browser) some that yt-dlp
+                            // cannot read at all; the download step tries them.
+                            if (item.customArgs == null && !Fallbacks.mayHelp(item, error.message)) throw error
                         }
                         ensureCurrent(attempt)
                     }
@@ -509,46 +513,77 @@ object DownloadManager {
         update(attempt) { it.copy(status = DownloadItem.Status.Downloading) }
 
         // yt-dlp gets its own copy of the cookies; see CookieStore.withRunCookies.
-        CookieStore.withRunCookies { cookies ->
-            val request =
-                YoutubeDLRequest(item.url).apply {
-                    // Every option goes in as written: some take two values, which addOption cannot.
-                    addCommands(
-                        DownloadArgs.download(
-                            item = item,
-                            settings = settings,
-                            homeDirectory = dir.absolutePath,
-                            temporaryDirectory = temporaryDirectory.absolutePath,
-                            markerPath = marker.absolutePath,
-                            // The same name on every attempt lets yt-dlp continue its partial files.
-                            outputTemplate = DownloadOutput.template(item.id, item.title.takeIf { item.isClip }),
-                            cookiesPath = cookies,
-                            deviceLanguage = Locale.getDefault().language,
-                        ))
-                }
+        var fallback: Fallbacks.Found? = null
+        try {
+            CookieStore.withRunCookies { cookies ->
+                val request =
+                    YoutubeDLRequest(item.url).apply {
+                        // Every option goes in as written: some take two values, which addOption cannot.
+                        addCommands(
+                            DownloadArgs.download(
+                                item = item,
+                                settings = settings,
+                                homeDirectory = dir.absolutePath,
+                                temporaryDirectory = temporaryDirectory.absolutePath,
+                                markerPath = marker.absolutePath,
+                                // The same name on every attempt lets yt-dlp continue its partial files.
+                                outputTemplate = DownloadOutput.template(item.id, item.title.takeIf { item.isClip }),
+                                cookiesPath = cookies,
+                                deviceLanguage = Locale.getDefault().language,
+                            ))
+                    }
 
-            runInterruptible {
-                YoutubeDL.execute(request, attempt.token) { progress, eta, line ->
-                    // yt-dlp can emit bursts of output; labels need at most four refreshes a second.
-                    if (attempt.progressUpdates.shouldPublish(SystemClock.elapsedRealtime())) {
-                        update(attempt) {
-                            it.copy(
-                                status = DownloadItem.Status.Downloading,
-                                progress = if (progress >= 0f) (progress / 100f).coerceIn(0f, 1f) else it.progress,
-                                etaSeconds = eta,
-                                speed = SpeedRegex.find(line)?.groupValues?.get(1) ?: it.speed,
-                            )
+                runInterruptible {
+                    YoutubeDL.execute(request, attempt.token) { progress, eta, line ->
+                        // yt-dlp can emit bursts of output; labels need at most four refreshes a second.
+                        if (attempt.progressUpdates.shouldPublish(SystemClock.elapsedRealtime())) {
+                            update(attempt) {
+                                it.copy(
+                                    status = DownloadItem.Status.Downloading,
+                                    progress = if (progress >= 0f) (progress / 100f).coerceIn(0f, 1f) else it.progress,
+                                    etaSeconds = eta,
+                                    speed = SpeedRegex.find(line)?.groupValues?.get(1) ?: it.speed,
+                                )
+                            }
                         }
                     }
                 }
             }
+        } catch (error: YoutubeDLException) {
+            ensureCurrent(attempt)
+            if (!Fallbacks.mayHelp(item, error.message)) throw error
+            // yt-dlp could not get it; gallery-dl or the hidden browser may.
+            update(attempt) { it.copy(status = DownloadItem.Status.Preparing, progress = null, speed = "", etaSeconds = -1) }
+            fallback =
+                CookieStore.withRunCookies { cookies ->
+                    Fallbacks.run(appContext, item, dir, workDirectory, cookies, settings) { fraction ->
+                        if (attempt.progressUpdates.shouldPublish(SystemClock.elapsedRealtime())) {
+                            update(attempt) {
+                                it.copy(status = DownloadItem.Status.Downloading, progress = fraction, speed = "", etaSeconds = -1)
+                            }
+                        }
+                    }
+                } ?: throw error
         }
         ensureCurrent(attempt)
+        fallback?.let { found ->
+            update(attempt) {
+                it.copy(
+                    title = it.title.takeIf { title -> title.isNotBlank() && title != it.url }
+                        ?: found.title ?: found.files.first().nameWithoutExtension,
+                    thumbnail = it.thumbnail ?: found.thumbnail,
+                    source = it.source.ifBlank { Fallbacks.siteName(it.url) },
+                )
+            }
+        }
 
         // A command may save several files, anywhere, or none; Glint's own downloads save one.
         val reported =
-            if (item.customArgs != null) DownloadOutput.reportedFiles(marker)
-            else listOf(DownloadOutput.completedFile(marker, dir))
+            when {
+                fallback != null -> fallback.files
+                item.customArgs != null -> DownloadOutput.reportedFiles(marker)
+                else -> listOf(DownloadOutput.completedFile(marker, dir))
+            }
         val sizeBytes = reported.sumOf(File::length)
 
         val saved: List<Saved> =
@@ -582,6 +617,10 @@ object DownloadManager {
             }
         ensureCurrent(attempt)
         val last = saved.lastOrNull()
+        val picture =
+            reported.indexOfFirst { DownloadOutput.isPicture(it.name) }.takeIf { it >= 0 }?.let { index ->
+                saved.getOrNull(index)?.let { it.path?.let { file -> Uri.fromFile(file).toString() } ?: it.uri?.toString() }
+            }
 
         update(attempt) {
             it.copy(
@@ -592,6 +631,7 @@ object DownloadManager {
                 fileUri = last?.uri?.toString(),
                 sizeBytes = if (reported.isEmpty()) it.sizeBytes else sizeBytes,
                 formatLabel = DownloadOutput.withFileCount(it.formatLabel, saved.size),
+                thumbnail = it.thumbnail ?: picture,
                 completedAt = System.currentTimeMillis(),
                 fileMissing = false,
             )

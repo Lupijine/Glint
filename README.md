@@ -25,6 +25,10 @@
 
 - Everything yt-dlp supports: YouTube and thousands of other sites. yt-dlp updates from inside
   the app, from its stable or nightly channel.
+- When yt-dlp cannot get a link, Glint tries other ways: [gallery-dl](https://github.com/mikf/gallery-dl)
+  for pictures, albums and posts (Instagram, X, Pinterest, Reddit, Tumblr, Imgur and more), and for
+  Facebook and Instagram videos a hidden browser that uses your sign-in and finds the video as the
+  page plays it.
 - Share a link from any app and a glass sheet opens over that app. Or tap + and paste a link,
   or type words to search YouTube.
 - Every link is read first: a preview, the real qualities with their file sizes, and every
@@ -93,8 +97,9 @@ updates from GitHub releases.
 ## Privacy
 
 Glint has no ads, analytics or accounts, and sends nothing about you anywhere. It connects only
-to the sites you download from, to GitHub to update yt-dlp, and, when SponsorBlock is turned on,
-to SponsorBlock's server for the segments of a video. Cookies from signing in stay on the phone.
+to the sites you download from, to GitHub to update yt-dlp, to PyPI to update gallery-dl, and,
+when SponsorBlock is turned on, to SponsorBlock's server for the segments of a video. The hidden
+browser runs on the phone, with the sign-in you made in Glint's own browser. Cookies from signing in stay on the phone.
 If Glint crashes, the error is kept on the phone and shown the next time it opens, for you to
 copy and send if you choose.
 
@@ -124,6 +129,8 @@ the better wording.
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp), which does the downloading
 - [youtubedl-android](https://github.com/JunkFood02/youtubedl-android), which brings yt-dlp,
   Python and [FFmpeg](https://ffmpeg.org) to Android
+- [gallery-dl](https://github.com/mikf/gallery-dl), for pictures and posts yt-dlp does not get,
+  shipped with [requests](https://github.com/psf/requests) and its helpers
 - [Seal](https://github.com/JunkFood02/Seal), the downloader that inspired Glint
 - [Coil](https://github.com/coil-kt/coil) for images
 

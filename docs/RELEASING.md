@@ -36,6 +36,13 @@ The **Release** workflow checks the version (and that it is not released yet), b
 the APKs, and publishes a release tagged `v<versionName>` with one APK per processor type, the
 notes, and the signing certificate's fingerprint. It refuses to publish without the signing key.
 
+## gallery-dl
+
+The gallery-dl a fresh install starts with lives in `app/src/main/assets/gallery-dl`: its wheel,
+the pure-Python packages it needs, a launcher and its version. Run `tools/update-gallery-dl.sh` to
+refresh them from PyPI. Installed apps also update gallery-dl from PyPI on their own, alongside
+yt-dlp.
+
 ## Store listing
 
 `fastlane/metadata/android/` holds the title, descriptions, icon, screenshots and changelogs

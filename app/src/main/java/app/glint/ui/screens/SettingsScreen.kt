@@ -139,6 +139,7 @@ fun SettingsScreen(bottomInset: Dp) {
     val cookieSites by CookieStore.sites.collectAsStateWithLifecycle()
     val engine by Engine.state.collectAsStateWithLifecycle()
     val version by Engine.version.collectAsStateWithLifecycle()
+    val galleryVersion by Engine.galleryVersion.collectAsStateWithLifecycle()
     val lastUpdate by Engine.lastUpdate.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -548,6 +549,10 @@ fun SettingsScreen(bottomInset: Dp) {
                         title = stringResource(R.string.ytdlp_version, version ?: "…"),
                         subtitle = status,
                     )
+                    // The second downloader, for pictures and posts yt-dlp does not get.
+                    galleryVersion?.let {
+                        Text(text = "gallery-dl $it", color = SecondaryText, fontSize = 12.5.sp)
+                    }
                     GlassPill(
                         text = stringResource(R.string.update_now),
                         icon = GlintIcons.Retry,
