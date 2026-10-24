@@ -21,6 +21,27 @@ enum class AudioFormat(val codec: String?) {
     Opus("opus"),
 }
 
+/** The program that gets a download. */
+enum class Tool {
+    /** yt-dlp; when it cannot read a link, Glint's other ways are tried after it. */
+    YtDlp,
+
+    /** gallery-dl: every picture and video of a post, album or profile. */
+    GalleryDl,
+
+    /**
+     * Glint's hidden browser, for Facebook and Instagram videos yt-dlp cannot read. The format
+     * selector is then [BrowserQuality]'s name.
+     */
+    Browser,
+}
+
+/** The quality the hidden browser picks when a page offers more than one. */
+enum class BrowserQuality {
+    Best,
+    Small,
+}
+
 /**
  * Everything needed to start one download. Details that are already known, such as a title read
  * while choosing a format, let the download start without asking the site again.
@@ -49,6 +70,7 @@ data class DownloadRequest(
     val preciseCut: Boolean = false,
     /** The followed channel or playlist this download came from. */
     val subscriptionId: String? = null,
+    val tool: Tool = Tool.YtDlp,
 )
 
 data class DownloadItem(
@@ -86,6 +108,7 @@ data class DownloadItem(
     val inQueue: Boolean = true,
     /** A finished file that is no longer on the device. Checked on the device, never stored. */
     val fileMissing: Boolean = false,
+    val tool: Tool = Tool.YtDlp,
 ) {
     enum class Status {
         /** Waiting for a free download slot. */

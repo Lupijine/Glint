@@ -77,6 +77,11 @@
     <string name="delete_confirm">删除</string>
     <string name="delete_failed">无法删除文件。请在文件管理器中删除。</string>
     <string name="type_command">命令</string>
+    <string name="probe_browser">正在用 Glint 的浏览器查找视频…</string>
+    <string name="probe_gallery">正在用 gallery-dl 读取链接…</string>
+    <string name="found_by_browser">yt-dlp 无法读取此链接，因此由 Glint 的浏览器找到了视频。</string>
+    <string name="gallery_failed">gallery-dl 无法读取此链接。</string>
+    <string name="gallery_hint">保存帖子、相册或个人主页中的所有图片和视频。</string>
     <string name="section_downloads">下载</string>
     <string name="section_extras">字幕和附加内容</string>
     <string name="section_network">账号和网络</string>
@@ -257,6 +262,15 @@
     </plurals>
     <plurals name="library_summary">
         <item quantity="other">%1$d 个文件 · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="other">gallery-dl 找到了 %s 个文件</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="other">%d 张图片</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="other">下载 %s 个文件</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="other">%s</item>

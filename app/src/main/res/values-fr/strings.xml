@@ -77,6 +77,11 @@
     <string name="delete_confirm">Supprimer</string>
     <string name="delete_failed">Le fichier n’a pas pu être supprimé. Supprimez-le depuis votre gestionnaire de fichiers.</string>
     <string name="type_command">Commande</string>
+    <string name="probe_browser">Recherche de la vidéo avec le navigateur de Glint…</string>
+    <string name="probe_gallery">Lecture du lien avec gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp n’a pas pu lire ce lien, le navigateur de Glint a donc trouvé la vidéo.</string>
+    <string name="gallery_failed">gallery-dl n’a pas pu lire ce lien.</string>
+    <string name="gallery_hint">Enregistre toutes les images et vidéos de la publication, de l’album ou du profil.</string>
     <string name="section_downloads">Téléchargements</string>
     <string name="section_extras">Sous-titres et extras</string>
     <string name="section_network">Comptes et réseau</string>
@@ -265,6 +270,21 @@
         <item quantity="one">%1$d fichier · %2$s</item>
         <item quantity="many">%1$d de fichiers · %2$s</item>
         <item quantity="other">%1$d fichiers · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl a trouvé %s fichier</item>
+        <item quantity="many">gallery-dl a trouvé %s de fichiers</item>
+        <item quantity="other">gallery-dl a trouvé %s fichiers</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d image</item>
+        <item quantity="many">%d d’images</item>
+        <item quantity="other">%d images</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Télécharger %s fichier</item>
+        <item quantity="many">Télécharger %s de fichiers</item>
+        <item quantity="other">Télécharger %s fichiers</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

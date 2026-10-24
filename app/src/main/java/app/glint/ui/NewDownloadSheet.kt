@@ -69,6 +69,14 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import app.glint.R
 import android.widget.Toast
 import app.glint.engine.AudioFormat
+import app.glint.engine.BrowserCapture
+import app.glint.engine.BrowserQuality
+import app.glint.engine.CookieStore
+import app.glint.engine.Fallbacks
+import app.glint.engine.GalleryDl
+import app.glint.engine.GalleryListing
+import app.glint.engine.MediaPlan
+import app.glint.engine.Tool
 import app.glint.engine.Chapter
 import app.glint.engine.Chapters
 import app.glint.engine.Clips
@@ -108,12 +116,30 @@ private sealed interface ProbeState {
     data class Ready(val probe: Probe) : ProbeState
 }
 
-/** What the sheet downloads: Glint's own video or audio choices, or a saved command. */
+/** What the sheet downloads: Glint's own video or audio choices, a saved command, or gallery-dl. */
 private enum class SheetKind(val label: Int) {
     Video(R.string.type_video),
     Audio(R.string.type_audio),
     Command(R.string.type_command),
+    Gallery(R.string.type_gallery),
 }
+
+/** What one of Glint's other ways (the hidden browser, gallery-dl) found at a link. */
+private sealed interface WayState<out T> {
+    data object Idle : WayState<Nothing>
+
+    data class Looking(val link: String) : WayState<Nothing>
+
+    data class Found<T>(val link: String, val result: T) : WayState<T>
+
+    data class Failed(val link: String, val message: String?) : WayState<Nothing>
+}
+
+private fun <T> WayState<T>.foundFor(link: String?): T? = (this as? WayState.Found<T>)?.takeIf { it.link == link }?.result
+
+private fun WayState<*>.lookingFor(link: String?) = this is WayState.Looking && this.link == link
+
+private fun WayState<*>.failedFor(link: String?) = this is WayState.Failed && this.link == link
 
 /**
  * The new download sheet. A link is read as soon as it is pasted: a video offers its real
@@ -151,6 +177,12 @@ internal fun NewDownloadSheet(
     var excluded by rememberSaveable(stateSaver = StringSetSaver) { mutableStateOf(emptySet<String>()) }
     var probeState by remember { mutableStateOf<ProbeState>(ProbeState.Idle) }
     var probeAttempt by remember { mutableIntStateOf(0) }
+    // The link gallery-dl was chosen for: choosing it is for one link, like its preview.
+    var galleryFor by rememberSaveable { mutableStateOf<String?>(null) }
+    var browserQuality by rememberSaveable { mutableStateOf(BrowserQuality.Best) }
+    // What the other ways found: the hidden browser and gallery-dl.
+    var browserState by remember { mutableStateOf<WayState<BrowserCapture.Capture>>(WayState.Idle) }
+    var galleryState by remember { mutableStateOf<WayState<GalleryListing>>(WayState.Idle) }
     // Words typed instead of a link, once the user asks to search for them.
     var searchQuery by rememberSaveable { mutableStateOf<String?>(null) }
     var trimOn by rememberSaveable { mutableStateOf(false) }
@@ -192,6 +224,66 @@ internal fun NewDownloadSheet(
             }
     }
 
+    // When yt-dlp cannot read a link, the sheet tries Glint's other ways, in the order a
+    // download would; gallery-dl also reads any link it is chosen for.
+    val galleryMode = link != null && galleryFor == link
+    val readFailed = probeState is ProbeState.Failed
+    val failedMessage = (probeState as? ProbeState.Failed)?.message
+    val otherWays = remember(link, readFailed, failedMessage) {
+        if (link != null && readFailed && Fallbacks.mayHelp(link, failedMessage)) Fallbacks.ways(link) else emptyList()
+    }
+    val galleryDone = galleryState.foundFor(link) != null || galleryState.failedFor(link)
+    val wantBrowser =
+        !galleryMode && Fallbacks.Way.Browser in otherWays &&
+            (otherWays.first() == Fallbacks.Way.Browser || galleryDone)
+    val wantGallery =
+        galleryMode ||
+            (Fallbacks.Way.Gallery in otherWays &&
+                (otherWays.first() == Fallbacks.Way.Gallery || browserState.failedFor(link)))
+
+    LaunchedEffect(link, wantBrowser, probeAttempt) {
+        val target = link
+        if (target == null || !wantBrowser) {
+            if (browserState is WayState.Looking) browserState = WayState.Idle
+            return@LaunchedEffect
+        }
+        if (browserState.foundFor(target) != null) return@LaunchedEffect
+        browserState = WayState.Looking(target)
+        browserState =
+            try {
+                BrowserCapture.find(context, target, timeoutMillis = 30_000)
+                    ?.takeIf { it.plan != MediaPlan.None }
+                    ?.let { WayState.Found(target, it) }
+                    ?: WayState.Failed(target, null)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                WayState.Failed(target, error.message)
+            }
+    }
+
+    LaunchedEffect(link, wantGallery, probeAttempt) {
+        val target = link
+        if (target == null || !wantGallery) {
+            if (galleryState is WayState.Looking) galleryState = WayState.Idle
+            return@LaunchedEffect
+        }
+        if (galleryState.foundFor(target) != null) return@LaunchedEffect
+        galleryState = WayState.Looking(target)
+        val result =
+            try {
+                val listing = CookieStore.withRunCookies { cookies -> GalleryDl.list(target, cookies, SettingsStore.current) }
+                WayState.Found(target, listing)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                WayState.Failed(target, error.message)
+            }
+        // yt-dlp could not read the link and gallery-dl could: it is the way to download it.
+        if (result is WayState.Found && !galleryMode) galleryFor = target
+        galleryState = result
+    }
+
     val probe = (probeState as? ProbeState.Ready)?.probe
     val video = probe as? Probe.Video
     val playlist = probe as? Probe.Playlist
@@ -224,6 +316,7 @@ internal fun NewDownloadSheet(
     val command: CommandTemplate? = templates.firstOrNull { it.id == commandId } ?: templates.firstOrNull()
     val kind =
         when {
+            galleryMode -> SheetKind.Gallery
             commandMode && command != null -> SheetKind.Command
             type == MediaType.Audio -> SheetKind.Audio
             else -> SheetKind.Video
@@ -231,6 +324,10 @@ internal fun NewDownloadSheet(
     val selectedChoice: VideoChoice? =
         if (customFormat != null) null
         else choices.firstOrNull { it.height == choiceHeight } ?: FormatChoices.pick(choices, quality)
+    // The video Glint's browser found when yt-dlp could not read the link; commands are yt-dlp's.
+    val browserFound =
+        if (readFailed && (kind == SheetKind.Video || kind == SheetKind.Audio)) browserState.foundFor(link) else null
+    val listing = galleryState.foundFor(link)
     // A playlist can list a video more than once; it is downloaded once.
     val downloadable =
         playlist?.entries?.filter { !it.isPlaylist && it.url !in excluded }?.distinctBy { it.url }.orEmpty()
@@ -240,6 +337,34 @@ internal fun NewDownloadSheet(
         val presetSelector = FormatChoices.preset(type, quality)
         val presetLabel = FormatChoices.presetLabel(type, quality, audioFormat)
         return when {
+            kind == SheetKind.Gallery ->
+                listOf(
+                    DownloadRequest(
+                        url = target,
+                        type = MediaType.Video,
+                        formatSelector = "",
+                        formatLabel = "gallery-dl",
+                        title = listing?.title ?: video?.title ?: playlist?.title.orEmpty(),
+                        thumbnail = listing?.thumbnail ?: video?.thumbnail,
+                        source = listing?.site ?: probe?.source?.takeIf { it.isNotBlank() } ?: Fallbacks.siteName(target),
+                        tool = Tool.GalleryDl,
+                    ))
+            browserFound != null -> {
+                val small = browserFound.offersSmall && browserQuality == BrowserQuality.Small
+                listOf(
+                    DownloadRequest(
+                        url = target,
+                        type = type,
+                        formatSelector = if (small) BrowserQuality.Small.name else BrowserQuality.Best.name,
+                        formatLabel = if (type == MediaType.Audio) presetLabel else if (small) "SD" else "",
+                        audioFormat = audioFormat,
+                        title = browserFound.title ?: Fallbacks.untitled(browserFound.pageUrl),
+                        thumbnail = browserFound.thumbnail,
+                        source = Fallbacks.siteName(target),
+                        durationSeconds = browserFound.durationSeconds,
+                        tool = Tool.Browser,
+                    ))
+            }
             kind == SheetKind.Command && command != null ->
                 // A command runs on the whole link, so a playlist stays one download.
                 listOf(
@@ -453,11 +578,16 @@ internal fun NewDownloadSheet(
                     item(key = "loading") { ProbeLoading(Modifier.padding(top = 14.dp)) }
                 is ProbeState.Failed ->
                     item(key = "failed") {
-                        ProbeFailed(
-                            message = state.message,
-                            onRetry = { probeAttempt++ },
-                            modifier = Modifier.padding(top = 14.dp),
-                        )
+                        val modifier = Modifier.padding(top = 14.dp)
+                        when {
+                            // gallery-dl's own panel, below, says what it found.
+                            kind == SheetKind.Gallery -> Unit
+                            kind != SheetKind.Command && browserState.lookingFor(link) ->
+                                ProbeLoading(modifier, R.string.probe_browser)
+                            browserFound != null -> BrowserPreview(browserFound, Fallbacks.siteName(link.orEmpty()), modifier)
+                            galleryState.lookingFor(link) -> ProbeLoading(modifier, R.string.probe_gallery)
+                            else -> ProbeFailed(message = state.message, onRetry = { probeAttempt++ }, modifier = modifier)
+                        }
                     }
                 is ProbeState.Ready ->
                     when (val result = state.probe) {
@@ -474,7 +604,7 @@ internal fun NewDownloadSheet(
                                 val isFollowing = followed.any { it.url == result.url }
                                 PlaylistHeader(
                                     playlist = result,
-                                    selectable = kind != SheetKind.Command,
+                                    selectable = kind != SheetKind.Command && kind != SheetKind.Gallery,
                                     selectedCount = downloadable.size,
                                     onSelectAll = { excluded = emptySet() },
                                     onSelectNone = {
@@ -498,7 +628,7 @@ internal fun NewDownloadSheet(
                                 )
                             }
                             // A playlist can list the same video twice, so rows are keyed by position.
-                            val rows = if (kind == SheetKind.Command) emptyList() else result.entries
+                            val rows = if (kind == SheetKind.Command || kind == SheetKind.Gallery) emptyList() else result.entries
                             itemsIndexed(rows, key = { index, _ -> "entry $index" }) { _, entry ->
                                 PlaylistEntryRow(
                                     entry = entry,
@@ -537,15 +667,17 @@ internal fun NewDownloadSheet(
                     val kinds =
                         SheetKind.entries.filter {
                             (it != SheetKind.Command || templates.isNotEmpty()) &&
-                                (it != SheetKind.Video || !audioOnly)
+                                (it != SheetKind.Video || !audioOnly) &&
+                                (it != SheetKind.Gallery || (link != null && Fallbacks.galleryMayRead(link)))
                         }
                     GlassSegmented(
                         options = kinds,
                         selected = kind,
                         label = { stringResource(it.label) },
                         onSelect = {
+                            galleryFor = if (it == SheetKind.Gallery) link else null
                             commandMode = it == SheetKind.Command
-                            if (it != SheetKind.Command) {
+                            if (it == SheetKind.Video || it == SheetKind.Audio) {
                                 type = if (it == SheetKind.Audio) MediaType.Audio else MediaType.Video
                                 if (customFormat != null && customFormat.hasVideo != (type == MediaType.Video)) {
                                     customFormatId = null
@@ -562,7 +694,26 @@ internal fun NewDownloadSheet(
                     modifier = Modifier.padding(top = 18.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    if (kind == SheetKind.Command && command != null) {
+                    if (kind == SheetKind.Gallery) {
+                        val state = galleryState
+                        when {
+                            state.lookingFor(link) -> ProbeLoading(Modifier, R.string.probe_gallery)
+                            listing != null -> GalleryPreview(listing, Fallbacks.siteName(link.orEmpty()))
+                            state is WayState.Failed && state.link == link ->
+                                ProbeFailed(
+                                    message = state.message,
+                                    onRetry = { probeAttempt++ },
+                                    fallback = R.string.gallery_failed,
+                                    hint = null,
+                                )
+                        }
+                        Text(
+                            text = stringResource(R.string.gallery_hint),
+                            modifier = Modifier.padding(start = 4.dp),
+                            color = SecondaryText,
+                            fontSize = 12.sp,
+                        )
+                    } else if (kind == SheetKind.Command && command != null) {
                         FieldLabel(stringResource(R.string.type_command))
                         ChoiceRow(
                             options = templates,
@@ -588,6 +739,15 @@ internal fun NewDownloadSheet(
                             modifier = Modifier.padding(start = 4.dp),
                             color = SecondaryText,
                             fontSize = 12.sp,
+                        )
+                    } else if (type == MediaType.Video && browserFound != null) {
+                        FieldLabel(stringResource(R.string.quality_label))
+                        ChoiceRow(
+                            options =
+                                if (browserFound.offersSmall) BrowserQuality.entries.toList() else listOf(BrowserQuality.Best),
+                            selected = if (browserFound.offersSmall) browserQuality else BrowserQuality.Best,
+                            label = { if (it == BrowserQuality.Small) "SD" else stringResource(R.string.quality_best) },
+                            onSelect = { browserQuality = it },
                         )
                     } else if (type == MediaType.Video) {
                         FieldLabel(stringResource(R.string.quality_label))
@@ -627,7 +787,7 @@ internal fun NewDownloadSheet(
                 }
             }
 
-            if (video != null && video.chapters.size >= 2 && kind != SheetKind.Command) {
+            if (video != null && video.chapters.size >= 2 && kind != SheetKind.Command && kind != SheetKind.Gallery) {
                 item(key = "chapters") {
                     ChaptersHeader(
                         count = video.chapters.size,
@@ -664,7 +824,7 @@ internal fun NewDownloadSheet(
                 }
             }
 
-            if (video != null && video.durationSeconds > 1 && kind != SheetKind.Command) {
+            if (video != null && video.durationSeconds > 1 && kind != SheetKind.Command && kind != SheetKind.Gallery) {
                 item(key = "trim") {
                     TrimControls(
                         duration = video.durationSeconds,
@@ -700,7 +860,7 @@ internal fun NewDownloadSheet(
 
             // Only the streams that fit the chosen type are listed: audio streams for audio.
             val listedFormats =
-                if (video == null || kind == SheetKind.Command) emptyList()
+                if (video == null || kind == SheetKind.Command || kind == SheetKind.Gallery) emptyList()
                 else FormatChoices.listFor(video.formats, type).asReversed()
             if (video != null && listedFormats.size > 1) {
                 item(key = "all formats") {
@@ -736,6 +896,9 @@ internal fun NewDownloadSheet(
                     }
                 val label =
                     when {
+                        kind == SheetKind.Gallery && listing != null ->
+                            pluralStringResource(R.plurals.download_files, listing.files, galleryCount(listing))
+                        kind == SheetKind.Gallery -> stringResource(R.string.download)
                         kind == SheetKind.Command && command != null ->
                             stringResource(R.string.run_named_command, command.name)
                         playlist != null ->
@@ -749,7 +912,8 @@ internal fun NewDownloadSheet(
                         else -> stringResource(R.string.download)
                     }
                 val canDownload =
-                    url.isNotBlank() && (kind == SheetKind.Command || playlist == null || downloadable.isNotEmpty())
+                    url.isNotBlank() &&
+                        (kind == SheetKind.Command || kind == SheetKind.Gallery || playlist == null || downloadable.isNotEmpty())
                 DownloadButton(
                     label = label,
                     enabled = canDownload,
@@ -815,7 +979,7 @@ private fun LinkField(url: String, onUrlChange: (String) -> Unit, onPaste: () ->
 }
 
 @Composable
-private fun ProbeLoading(modifier: Modifier = Modifier) {
+private fun ProbeLoading(modifier: Modifier = Modifier, text: Int = R.string.probe_loading) {
     Row(
         modifier =
             modifier
@@ -830,12 +994,18 @@ private fun ProbeLoading(modifier: Modifier = Modifier) {
             strokeWidth = 2.dp,
         )
         Spacer(Modifier.width(12.dp))
-        Text(text = stringResource(R.string.probe_loading), color = SecondaryText, fontSize = 13.5.sp)
+        Text(text = stringResource(text), color = SecondaryText, fontSize = 13.5.sp)
     }
 }
 
 @Composable
-private fun ProbeFailed(message: String?, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+private fun ProbeFailed(
+    message: String?,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    fallback: Int = R.string.probe_failed,
+    hint: Int? = R.string.probe_failed_hint,
+) {
     Column(
         modifier =
             modifier
@@ -847,16 +1017,83 @@ private fun ProbeFailed(message: String?, onRetry: () -> Unit, modifier: Modifie
         // A known cause in plain words; otherwise only that the link could not be read.
         val kind = ErrorKind.of(message)
         Text(
-            text = stringResource(if (kind == ErrorKind.Unknown) R.string.probe_failed else kind.message),
+            text = stringResource(if (kind == ErrorKind.Unknown) fallback else kind.message),
             color = MaterialTheme.colorScheme.error,
             fontSize = 13.5.sp,
             lineHeight = 19.sp,
             maxLines = 4,
             overflow = TextOverflow.Ellipsis,
         )
-        Text(text = stringResource(R.string.probe_failed_hint), color = SecondaryText, fontSize = 12.5.sp)
+        hint?.let { Text(text = stringResource(it), color = SecondaryText, fontSize = 12.5.sp) }
         GlassPill(text = stringResource(R.string.probe_retry), icon = GlintIcons.Retry, onClick = onRetry)
     }
+}
+
+/** "12" or, when gallery-dl stopped counting, "100+". */
+private fun galleryCount(listing: GalleryListing) = if (listing.more) "${listing.files}+" else "${listing.files}"
+
+/** A link's details as another way found them: a picture, a title, and a line under it. */
+@Composable
+private fun FoundPreview(title: String, thumbnail: String?, meta: String, note: String, modifier: Modifier = Modifier) {
+    Column(
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .glassSurface(RoundedCornerShape(22.dp))
+                .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Thumbnail(url = thumbnail, type = MediaType.Video, width = 112, height = 64)
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = title,
+                    color = Color.White,
+                    fontSize = 14.5.sp,
+                    fontWeight = FontWeight.Medium,
+                    lineHeight = 19.sp,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                if (meta.isNotEmpty()) {
+                    Spacer(Modifier.height(3.dp))
+                    Text(text = meta, color = SecondaryText, fontSize = 12.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+        }
+        Text(text = note, color = SecondaryText, fontSize = 12.sp, lineHeight = 16.sp)
+    }
+}
+
+@Composable
+private fun BrowserPreview(capture: BrowserCapture.Capture, site: String, modifier: Modifier = Modifier) {
+    FoundPreview(
+        title = capture.title ?: Fallbacks.untitled(capture.pageUrl),
+        thumbnail = capture.thumbnail,
+        meta =
+            listOfNotNull(site.ifEmpty { null }, capture.durationSeconds.takeIf { it > 0 }?.let(::formatDuration))
+                .joinToString(" · "),
+        note = stringResource(R.string.found_by_browser),
+        modifier = modifier,
+    )
+}
+
+@Composable
+private fun GalleryPreview(listing: GalleryListing, site: String, modifier: Modifier = Modifier) {
+    val kinds =
+        listOfNotNull(
+            listing.pictures.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.count_pictures, it, it) },
+            listing.videos.takeIf { it > 0 }?.let { pluralStringResource(R.plurals.playlist_items, it, it) },
+        )
+    val source = listing.site ?: site.ifEmpty { null }
+    FoundPreview(
+        title = listing.title ?: source ?: "gallery-dl",
+        thumbnail = listing.thumbnail,
+        meta = (listOfNotNull(source) + kinds).joinToString(" · "),
+        note = pluralStringResource(R.plurals.gallery_found, listing.files, galleryCount(listing)),
+        modifier = modifier,
+    )
 }
 
 @Composable

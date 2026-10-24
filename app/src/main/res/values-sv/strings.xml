@@ -77,6 +77,11 @@
     <string name="delete_confirm">Radera</string>
     <string name="delete_failed">Filen kunde inte raderas. Radera den i filhanteraren.</string>
     <string name="type_command">Kommando</string>
+    <string name="probe_browser">Letar efter videon med Glints webbläsare…</string>
+    <string name="probe_gallery">Läser länken med gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp kunde inte läsa länken, så Glints webbläsare hittade videon.</string>
+    <string name="gallery_failed">gallery-dl kunde inte läsa länken.</string>
+    <string name="gallery_hint">Sparar alla bilder och videor i inlägget, albumet eller profilen.</string>
     <string name="section_downloads">Nedladdningar</string>
     <string name="section_extras">Undertexter och extra</string>
     <string name="section_network">Konton och nätverk</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d fil · %2$s</item>
         <item quantity="other">%1$d filer · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl hittade %s fil</item>
+        <item quantity="other">gallery-dl hittade %s filer</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d bild</item>
+        <item quantity="other">%d bilder</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Ladda ned %s fil</item>
+        <item quantity="other">Ladda ned %s filer</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

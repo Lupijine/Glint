@@ -77,6 +77,11 @@
     <string name="delete_confirm">ลบ</string>
     <string name="delete_failed">ลบไฟล์ไม่ได้ ลบจากตัวจัดการไฟล์แทน</string>
     <string name="type_command">คำสั่ง</string>
+    <string name="probe_browser">กำลังค้นหาวิดีโอด้วยเบราว์เซอร์ของ Glint…</string>
+    <string name="probe_gallery">กำลังอ่านลิงก์ด้วย gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp อ่านลิงก์นี้ไม่ได้ เบราว์เซอร์ของ Glint จึงค้นหาวิดีโอให้</string>
+    <string name="gallery_failed">gallery-dl อ่านลิงก์นี้ไม่ได้</string>
+    <string name="gallery_hint">บันทึกรูปภาพและวิดีโอทั้งหมดในโพสต์ อัลบั้ม หรือโปรไฟล์</string>
     <string name="section_downloads">ดาวน์โหลด</string>
     <string name="section_extras">คำบรรยายและส่วนเสริม</string>
     <string name="section_network">บัญชีและเครือข่าย</string>
@@ -257,6 +262,15 @@
     </plurals>
     <plurals name="library_summary">
         <item quantity="other">%1$d ไฟล์ · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="other">gallery-dl พบ %s ไฟล์</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="other">รูปภาพ %d รูป</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="other">ดาวน์โหลด %s ไฟล์</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="other">%s</item>

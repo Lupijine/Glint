@@ -77,6 +77,11 @@
     <string name="delete_confirm">削除</string>
     <string name="delete_failed">ファイルを削除できませんでした。ファイル管理アプリから削除してください。</string>
     <string name="type_command">コマンド</string>
+    <string name="probe_browser">Glint のブラウザで動画を探しています…</string>
+    <string name="probe_gallery">gallery-dl でリンクを読み込み中…</string>
+    <string name="found_by_browser">yt-dlp でこのリンクを読み込めなかったため、Glint のブラウザが動画を見つけました。</string>
+    <string name="gallery_failed">gallery-dl でこのリンクを読み込めませんでした。</string>
+    <string name="gallery_hint">投稿、アルバム、プロフィールの画像と動画をすべて保存します。</string>
     <string name="section_downloads">ダウンロード</string>
     <string name="section_extras">字幕とその他</string>
     <string name="section_network">アカウントとネットワーク</string>
@@ -257,6 +262,15 @@
     </plurals>
     <plurals name="library_summary">
         <item quantity="other">%1$d 個のファイル · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="other">gallery-dl が %s 個のファイルを見つけました</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="other">%d 枚の画像</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="other">%s 個のファイルをダウンロード</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="other">%s</item>

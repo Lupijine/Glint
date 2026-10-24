@@ -138,7 +138,8 @@ fun <T> GlassSegmented(
             ) {
                 Text(
                     text = label(option),
-                    fontSize = 13.5.sp,
+                    // Four choices share the row's width.
+                    fontSize = if (options.size >= 4) 12.5.sp else 13.5.sp,
                     fontWeight = FontWeight.Medium,
                     color = content,
                     maxLines = 1,

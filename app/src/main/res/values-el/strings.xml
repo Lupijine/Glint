@@ -77,6 +77,11 @@
     <string name="delete_confirm">Διαγραφή</string>
     <string name="delete_failed">Δεν ήταν δυνατή η διαγραφή του αρχείου. Διαγράψτε το από τη διαχείριση αρχείων.</string>
     <string name="type_command">Εντολή</string>
+    <string name="probe_browser">Αναζήτηση του βίντεο με το πρόγραμμα περιήγησης του Glint…</string>
+    <string name="probe_gallery">Ανάγνωση του συνδέσμου με το gallery-dl…</string>
+    <string name="found_by_browser">Το yt-dlp δεν μπόρεσε να διαβάσει αυτόν τον σύνδεσμο, οπότε το πρόγραμμα περιήγησης του Glint βρήκε το βίντεο.</string>
+    <string name="gallery_failed">Το gallery-dl δεν μπόρεσε να διαβάσει αυτόν τον σύνδεσμο.</string>
+    <string name="gallery_hint">Αποθηκεύει κάθε εικόνα και βίντεο της ανάρτησης, του άλμπουμ ή του προφίλ.</string>
     <string name="section_downloads">Λήψεις</string>
     <string name="section_extras">Υπότιτλοι και επιπλέον</string>
     <string name="section_network">Λογαριασμοί και δίκτυο</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d αρχείο · %2$s</item>
         <item quantity="other">%1$d αρχεία · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">Το gallery-dl βρήκε %s αρχείο</item>
+        <item quantity="other">Το gallery-dl βρήκε %s αρχεία</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d εικόνα</item>
+        <item quantity="other">%d εικόνες</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Λήψη %s αρχείου</item>
+        <item quantity="other">Λήψη %s αρχείων</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

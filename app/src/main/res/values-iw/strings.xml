@@ -77,6 +77,11 @@
     <string name="delete_confirm">מחיקה</string>
     <string name="delete_failed">לא ניתן היה למחוק את הקובץ. אפשר למחוק אותו במנהל הקבצים.</string>
     <string name="type_command">פקודה</string>
+    <string name="probe_browser">מחפש את הסרטון בדפדפן של Glint…</string>
+    <string name="probe_gallery">קורא את הקישור עם gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp לא הצליח לקרוא את הקישור הזה, לכן הדפדפן של Glint מצא את הסרטון.</string>
+    <string name="gallery_failed">gallery-dl לא הצליח לקרוא את הקישור הזה.</string>
+    <string name="gallery_hint">שומר כל תמונה וסרטון מהפוסט, מהאלבום או מהפרופיל.</string>
     <string name="section_downloads">הורדות</string>
     <string name="section_extras">כתוביות ותוספות</string>
     <string name="section_network">חשבונות ורשת</string>
@@ -269,6 +274,24 @@
         <item quantity="two">%1$d קבצים · %2$s</item>
         <item quantity="many">%1$d קבצים · %2$s</item>
         <item quantity="other">%1$d קבצים · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl מצא %s קובץ</item>
+        <item quantity="two">gallery-dl מצא %s קבצים</item>
+        <item quantity="many">gallery-dl מצא %s קבצים</item>
+        <item quantity="other">gallery-dl מצא %s קבצים</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d תמונה</item>
+        <item quantity="two">%d תמונות</item>
+        <item quantity="many">%d תמונות</item>
+        <item quantity="other">%d תמונות</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">הורדת %s קובץ</item>
+        <item quantity="two">הורדת %s קבצים</item>
+        <item quantity="many">הורדת %s קבצים</item>
+        <item quantity="other">הורדת %s קבצים</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

@@ -41,6 +41,8 @@ data class DownloadEntity(
     val sectionEnd: Int?,
     @ColumnInfo(defaultValue = "0") val preciseCut: Boolean,
     val subscriptionId: String?,
+    /** [Tool]'s name; null for yt-dlp, as in rows written before version 4. */
+    val tool: String?,
 )
 
 @Dao
@@ -55,7 +57,7 @@ interface DownloadDao {
     suspend fun delete(ids: List<String>)
 }
 
-@Database(entities = [DownloadEntity::class], version = 3, exportSchema = false)
+@Database(entities = [DownloadEntity::class], version = 4, exportSchema = false)
 abstract class GlintDatabase : RoomDatabase() {
     abstract fun downloads(): DownloadDao
 
@@ -71,7 +73,7 @@ abstract class GlintDatabase : RoomDatabase() {
                                 GlintDatabase::class.java,
                                 "glint.db",
                             )
-                            .addMigrations(AddCommandsAndErrorDetail, AddClipsAndFollowing)
+                            .addMigrations(AddCommandsAndErrorDetail, AddClipsAndFollowing, AddTool)
                             .build()
                             .also { instance = it }
                 }
@@ -95,6 +97,14 @@ private val AddClipsAndFollowing =
             db.execSQL("ALTER TABLE downloads ADD COLUMN sectionEnd INTEGER")
             db.execSQL("ALTER TABLE downloads ADD COLUMN preciseCut INTEGER NOT NULL DEFAULT 0")
             db.execSQL("ALTER TABLE downloads ADD COLUMN subscriptionId TEXT")
+        }
+    }
+
+/** Version 4 adds the program that gets a download: gallery-dl or the hidden browser. */
+private val AddTool =
+    object : Migration(3, 4) {
+        override fun migrate(db: SupportSQLiteDatabase) {
+            db.execSQL("ALTER TABLE downloads ADD COLUMN tool TEXT")
         }
     }
 
@@ -125,6 +135,7 @@ internal fun DownloadItem.toEntity(): DownloadEntity =
         sectionEnd = sectionEnd,
         preciseCut = preciseCut,
         subscriptionId = subscriptionId,
+        tool = tool.takeIf { it != Tool.YtDlp }?.name,
     )
 
 /** Null for a row this version cannot read, such as one written by a newer Glint. */
@@ -135,6 +146,8 @@ internal fun DownloadEntity.toItemOrNull(): DownloadItem? {
     val mediaType = MediaType.entries.firstOrNull { it.name == storedType } ?: return null
     val itemStatus = DownloadItem.Status.entries.firstOrNull { it.name == storedStatus } ?: return null
     val audio = AudioFormat.entries.firstOrNull { it.name == storedAudio } ?: AudioFormat.Original
+    val storedTool = tool
+    val itemTool = if (storedTool == null) Tool.YtDlp else Tool.entries.firstOrNull { it.name == storedTool } ?: return null
     return DownloadItem(
         id = id,
         url = url,
@@ -161,5 +174,6 @@ internal fun DownloadEntity.toItemOrNull(): DownloadItem? {
         sectionEnd = sectionEnd,
         preciseCut = preciseCut,
         subscriptionId = subscriptionId,
+        tool = itemTool,
     )
 }

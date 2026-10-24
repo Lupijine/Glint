@@ -77,6 +77,11 @@
     <string name="delete_confirm">Törlés</string>
     <string name="delete_failed">A fájlt nem sikerült törölni. Töröld a fájlkezelőben.</string>
     <string name="type_command">Parancs</string>
+    <string name="probe_browser">Videó keresése a Glint böngészőjével…</string>
+    <string name="probe_gallery">A link beolvasása a gallery-dl-lel…</string>
+    <string name="found_by_browser">A yt-dlp nem tudta beolvasni ezt a linket, ezért a Glint böngészője találta meg a videót.</string>
+    <string name="gallery_failed">A gallery-dl nem tudta beolvasni ezt a linket.</string>
+    <string name="gallery_hint">A bejegyzés, az album vagy a profil minden képét és videóját menti.</string>
     <string name="section_downloads">Letöltések</string>
     <string name="section_extras">Feliratok és extrák</string>
     <string name="section_network">Fiókok és hálózat</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d fájl · %2$s</item>
         <item quantity="other">%1$d fájl · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">A gallery-dl %s fájlt talált</item>
+        <item quantity="other">A gallery-dl %s fájlt talált</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d kép</item>
+        <item quantity="other">%d kép</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">%s fájl letöltése</item>
+        <item quantity="other">%s fájl letöltése</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

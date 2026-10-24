@@ -116,6 +116,7 @@ object DownloadManager {
                     sectionEnd = request.sectionEnd,
                     preciseCut = request.preciseCut,
                     subscriptionId = request.subscriptionId,
+                    tool = request.tool,
                     // Newest first, while a batch keeps its own order.
                     createdAt = now + (requests.size - 1 - index),
                 )
@@ -410,8 +411,9 @@ object DownloadManager {
                 }
                 slots.run(ticket) {
                     ensureCurrent(attempt)
-                    // Links read in the new download sheet already know their details.
-                    if (item.title.isBlank()) {
+                    // Links read in the new download sheet already know their details, and a
+                    // way chosen there instead of yt-dlp finds its own.
+                    if (item.title.isBlank() && item.tool == Tool.YtDlp) {
                         update(attempt) { it.copy(status = DownloadItem.Status.Preparing) }
                         try {
                             fetchInfo(item, attempt)
@@ -512,9 +514,22 @@ object DownloadManager {
         ensureCurrent(attempt)
         update(attempt) { it.copy(status = DownloadItem.Status.Downloading) }
 
+        val onFallbackProgress: (Float?) -> Unit = { fraction ->
+            if (attempt.progressUpdates.shouldPublish(SystemClock.elapsedRealtime())) {
+                update(attempt) {
+                    it.copy(status = DownloadItem.Status.Downloading, progress = fraction, speed = "", etaSeconds = -1)
+                }
+            }
+        }
         // yt-dlp gets its own copy of the cookies; see CookieStore.withRunCookies.
         var fallback: Fallbacks.Found? = null
-        try {
+        if (item.tool != Tool.YtDlp) {
+            // gallery-dl or the hidden browser, chosen in the new download sheet.
+            fallback =
+                CookieStore.withRunCookies { cookies ->
+                    Fallbacks.runChosen(appContext, item, dir, workDirectory, cookies, settings, onFallbackProgress)
+                }
+        } else try {
             CookieStore.withRunCookies { cookies ->
                 val request =
                     YoutubeDLRequest(item.url).apply {
@@ -556,13 +571,7 @@ object DownloadManager {
             update(attempt) { it.copy(status = DownloadItem.Status.Preparing, progress = null, speed = "", etaSeconds = -1) }
             fallback =
                 CookieStore.withRunCookies { cookies ->
-                    Fallbacks.run(appContext, item, dir, workDirectory, cookies, settings) { fraction ->
-                        if (attempt.progressUpdates.shouldPublish(SystemClock.elapsedRealtime())) {
-                            update(attempt) {
-                                it.copy(status = DownloadItem.Status.Downloading, progress = fraction, speed = "", etaSeconds = -1)
-                            }
-                        }
-                    }
+                    Fallbacks.run(appContext, item, dir, workDirectory, cookies, settings, onFallbackProgress)
                 } ?: throw error
         }
         ensureCurrent(attempt)
@@ -573,6 +582,7 @@ object DownloadManager {
                         ?: found.title ?: found.files.first().nameWithoutExtension,
                     thumbnail = it.thumbnail ?: found.thumbnail,
                     source = it.source.ifBlank { Fallbacks.siteName(it.url) },
+                    durationSeconds = it.durationSeconds.takeIf { seconds -> seconds > 0 } ?: found.durationSeconds,
                 )
             }
         }

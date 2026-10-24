@@ -1,0 +1,4 @@
+- When yt-dlp cannot read a link, the download window tries Glint's other ways instead of showing an error: Glint's browser shows the Facebook or Instagram video with its title, picture and quality, and gallery-dl says how many pictures and videos it found
+- gallery-dl can be chosen in the download window for any post, album or profile
+- The browser method no longer joins one video's picture with another video's sound, and gives videos their real title
+- Sound saved by the browser method can be MP3 or Opus

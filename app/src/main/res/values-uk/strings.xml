@@ -77,6 +77,11 @@
     <string name="delete_confirm">Видалити</string>
     <string name="delete_failed">Не вдалося видалити файл. Видаліть його у файловому менеджері.</string>
     <string name="type_command">Команда</string>
+    <string name="probe_browser">Пошук відео за допомогою браузера Glint…</string>
+    <string name="probe_gallery">Читання посилання за допомогою gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp не зміг прочитати це посилання, тому відео знайшов браузер Glint.</string>
+    <string name="gallery_failed">gallery-dl не зміг прочитати це посилання.</string>
+    <string name="gallery_hint">Зберігає всі зображення й відео з допису, альбому або профілю.</string>
     <string name="section_downloads">Завантаження</string>
     <string name="section_extras">Субтитри й додатки</string>
     <string name="section_network">Облікові записи й мережа</string>
@@ -269,6 +274,24 @@
         <item quantity="few">%1$d файли · %2$s</item>
         <item quantity="many">%1$d файлів · %2$s</item>
         <item quantity="other">%1$d файлу · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl знайшов %s файл</item>
+        <item quantity="few">gallery-dl знайшов %s файли</item>
+        <item quantity="many">gallery-dl знайшов %s файлів</item>
+        <item quantity="other">gallery-dl знайшов %s файлу</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d зображення</item>
+        <item quantity="few">%d зображення</item>
+        <item quantity="many">%d зображень</item>
+        <item quantity="other">%d зображення</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Завантажити %s файл</item>
+        <item quantity="few">Завантажити %s файли</item>
+        <item quantity="many">Завантажити %s файлів</item>
+        <item quantity="other">Завантажити %s файлу</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

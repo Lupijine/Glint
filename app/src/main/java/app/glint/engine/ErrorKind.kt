@@ -41,7 +41,9 @@ enum class ErrorKind(@StringRes val message: Int) {
                 SignIn to
                     Regex(
                         "sign in|log ?in|private video|members.only|confirm your age|age.restricted|" +
-                            "requires authentication|account (is )?required|--cookies",
+                            "requires authentication|account (is )?required|--cookies|" +
+                            // gallery-dl's own words
+                            "AuthRequired|AuthorizationError|401 Unauthorized",
                         Ignore,
                     ),
                 // After sign-in: "rate-limit reached or login required" is solved by signing in.
@@ -49,7 +51,8 @@ enum class ErrorKind(@StringRes val message: Int) {
                 Unavailable to
                     Regex(
                         "video unavailable|no longer available|has been removed|been terminated|does not exist|" +
-                            "HTTP Error 404|404: Not Found|been deleted|is not available",
+                            "HTTP Error 404|404: Not Found|been deleted|is not available|" +
+                            "NotFoundError|could not be found|'404 Not Found'",
                         Ignore,
                     ),
                 Outdated to
@@ -63,7 +66,8 @@ enum class ErrorKind(@StringRes val message: Int) {
                         "Errno (101|104|110|111|113|7|-2|-3)\\b|connection (reset|refused|aborted|timed out|closed)|" +
                             "timed? ?out|name resolution|resolve host|network is unreachable|no address associated|" +
                             "remote end closed|IncompleteRead|unable to connect|\\bSSL\\b|EOF occurred|" +
-                            "HTTP Error 5\\d\\d|urlopen error|Unable to download (webpage|video data)",
+                            "HTTP Error 5\\d\\d|urlopen error|Unable to download (webpage|video data)|" +
+                            "Max retries exceeded|Failed to establish a new connection|ConnectionError",
                         Ignore,
                     ),
                 // Last: yt-dlp asks for a bug report when it cannot read a site's page, usually

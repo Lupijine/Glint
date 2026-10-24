@@ -77,6 +77,11 @@
     <string name="delete_confirm">Smazat</string>
     <string name="delete_failed">Soubor se nepodařilo smazat. Smažte ho ve správci souborů.</string>
     <string name="type_command">Příkaz</string>
+    <string name="probe_browser">Hledání videa v prohlížeči Glint…</string>
+    <string name="probe_gallery">Čtení odkazu pomocí gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp nedokázal tento odkaz přečíst, proto video našel prohlížeč Glint.</string>
+    <string name="gallery_failed">gallery-dl nedokázal tento odkaz přečíst.</string>
+    <string name="gallery_hint">Uloží všechny obrázky a videa z příspěvku, alba nebo profilu.</string>
     <string name="section_downloads">Stahování</string>
     <string name="section_extras">Titulky a doplňky</string>
     <string name="section_network">Účty a síť</string>
@@ -269,6 +274,24 @@
         <item quantity="few">%1$d soubory · %2$s</item>
         <item quantity="many">%1$d souboru · %2$s</item>
         <item quantity="other">%1$d souborů · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl našel %s soubor</item>
+        <item quantity="few">gallery-dl našel %s soubory</item>
+        <item quantity="many">gallery-dl našel %s souboru</item>
+        <item quantity="other">gallery-dl našel %s souborů</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d obrázek</item>
+        <item quantity="few">%d obrázky</item>
+        <item quantity="many">%d obrázku</item>
+        <item quantity="other">%d obrázků</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Stáhnout %s soubor</item>
+        <item quantity="few">Stáhnout %s soubory</item>
+        <item quantity="many">Stáhnout %s souboru</item>
+        <item quantity="other">Stáhnout %s souborů</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

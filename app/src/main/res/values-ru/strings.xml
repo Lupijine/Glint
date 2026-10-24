@@ -77,6 +77,11 @@
     <string name="delete_confirm">Удалить</string>
     <string name="delete_failed">Не удалось удалить файл. Удалите его в файловом менеджере.</string>
     <string name="type_command">Команда</string>
+    <string name="probe_browser">Поиск видео с помощью браузера Glint…</string>
+    <string name="probe_gallery">Чтение ссылки с помощью gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp не смог прочитать эту ссылку, поэтому видео нашёл браузер Glint.</string>
+    <string name="gallery_failed">gallery-dl не смог прочитать эту ссылку.</string>
+    <string name="gallery_hint">Сохраняет все изображения и видео из публикации, альбома или профиля.</string>
     <string name="section_downloads">Загрузки</string>
     <string name="section_extras">Субтитры и дополнения</string>
     <string name="section_network">Аккаунты и сеть</string>
@@ -269,6 +274,24 @@
         <item quantity="few">%1$d файла · %2$s</item>
         <item quantity="many">%1$d файлов · %2$s</item>
         <item quantity="other">%1$d файла · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl нашёл %s файл</item>
+        <item quantity="few">gallery-dl нашёл %s файла</item>
+        <item quantity="many">gallery-dl нашёл %s файлов</item>
+        <item quantity="other">gallery-dl нашёл %s файла</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d изображение</item>
+        <item quantity="few">%d изображения</item>
+        <item quantity="many">%d изображений</item>
+        <item quantity="other">%d изображения</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Скачать %s файл</item>
+        <item quantity="few">Скачать %s файла</item>
+        <item quantity="many">Скачать %s файлов</item>
+        <item quantity="other">Скачать %s файла</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

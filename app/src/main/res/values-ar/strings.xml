@@ -109,6 +109,35 @@
     <string name="delete_confirm">حذف</string>
     <string name="delete_failed">تعذّر حذف الملف. احذفه من مدير الملفات.</string>
     <string name="type_command">أمر</string>
+    <string name="probe_browser">جارٍ البحث عن الفيديو بمتصفح Glint…</string>
+    <string name="probe_gallery">جارٍ قراءة الرابط بأداة gallery-dl…</string>
+    <string name="found_by_browser">تعذّر على yt-dlp قراءة هذا الرابط، فوجد متصفح Glint الفيديو.</string>
+    <string name="gallery_failed">تعذّر على gallery-dl قراءة هذا الرابط.</string>
+    <string name="gallery_hint">يحفظ كل الصور والفيديوهات في المنشور أو الألبوم أو الملف الشخصي.</string>
+    <plurals name="gallery_found">
+        <item quantity="zero">وجد gallery-dl %s ملف</item>
+        <item quantity="one">وجد gallery-dl ملفًا واحدًا</item>
+        <item quantity="two">وجد gallery-dl ملفين</item>
+        <item quantity="few">وجد gallery-dl %s ملفات</item>
+        <item quantity="many">وجد gallery-dl %s ملفًا</item>
+        <item quantity="other">وجد gallery-dl %s ملف</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="zero">%d صورة</item>
+        <item quantity="one">صورة واحدة</item>
+        <item quantity="two">صورتان</item>
+        <item quantity="few">%d صور</item>
+        <item quantity="many">%d صورة</item>
+        <item quantity="other">%d صورة</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="zero">تنزيل %s ملف</item>
+        <item quantity="one">تنزيل ملف واحد</item>
+        <item quantity="two">تنزيل ملفين</item>
+        <item quantity="few">تنزيل %s ملفات</item>
+        <item quantity="many">تنزيل %s ملفًا</item>
+        <item quantity="other">تنزيل %s ملف</item>
+    </plurals>
     <string name="section_downloads">التنزيلات</string>
     <string name="section_extras">الترجمات والإضافات</string>
     <string name="section_network">الحسابات والشبكة</string>

@@ -94,6 +94,24 @@
     <string name="delete_confirm">Delete</string>
     <string name="delete_failed">The file could not be deleted. Delete it from your file manager.</string>
     <string name="type_command">Command</string>
+    <string name="type_gallery" translatable="false">gallery-dl</string>
+    <string name="probe_browser">Looking for the video with Glint\'s browser…</string>
+    <string name="probe_gallery">Reading the link with gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp could not read this link, so Glint\'s browser found the video.</string>
+    <string name="gallery_failed">gallery-dl could not read this link.</string>
+    <string name="gallery_hint">Saves every picture and video in the post, album or profile.</string>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl found %s file</item>
+        <item quantity="other">gallery-dl found %s files</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d picture</item>
+        <item quantity="other">%d pictures</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Download %s file</item>
+        <item quantity="other">Download %s files</item>
+    </plurals>
     <string name="section_downloads">Downloads</string>
     <string name="section_extras">Subtitles and extras</string>
     <string name="section_network">Accounts and network</string>

@@ -77,6 +77,11 @@
     <string name="delete_confirm">حذف</string>
     <string name="delete_failed">فایل حذف نشد. آن را از مدیر فایل حذف کنید.</string>
     <string name="type_command">فرمان</string>
+    <string name="probe_browser">در حال جست‌وجوی ویدیو با مرورگر Glint…</string>
+    <string name="probe_gallery">در حال خواندن پیوند با gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp نتوانست این پیوند را بخواند، برای همین مرورگر Glint ویدیو را پیدا کرد.</string>
+    <string name="gallery_failed">gallery-dl نتوانست این پیوند را بخواند.</string>
+    <string name="gallery_hint">همهٔ تصویرها و ویدیوهای پست، آلبوم یا نمایه را ذخیره می‌کند.</string>
     <string name="section_downloads">دانلودها</string>
     <string name="section_extras">زیرنویس و امکانات بیشتر</string>
     <string name="section_network">حساب‌ها و شبکه</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d فایل · %2$s</item>
         <item quantity="other">%1$d فایل · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl %s فایل پیدا کرد</item>
+        <item quantity="other">gallery-dl %s فایل پیدا کرد</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d تصویر</item>
+        <item quantity="other">%d تصویر</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">دانلود %s فایل</item>
+        <item quantity="other">دانلود %s فایل</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

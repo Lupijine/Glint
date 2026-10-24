@@ -51,9 +51,12 @@ object ErrorText {
                 if (message.isNullOrEmpty()) e.javaClass.simpleName else "${e.javaClass.simpleName}: $message"
             }
 
+    private val GalleryDlPrefix = Regex("""^\[[\w.-]+]\[error]\s*""")
+
     fun summarize(message: String?): String? {
         val lines = message?.lines().orEmpty().map { it.trim() }.filter { it.isNotEmpty() }
         val line = lines.lastOrNull { it.contains("ERROR", ignoreCase = true) } ?: lines.lastOrNull()
-        return line?.removePrefix("ERROR:")?.trim()?.takeIf { it.isNotEmpty() }
+        // yt-dlp starts its errors with "ERROR:", gallery-dl with "[site][error]".
+        return line?.removePrefix("ERROR:")?.replace(GalleryDlPrefix, "")?.trim()?.takeIf { it.isNotEmpty() }
     }
 }

@@ -77,6 +77,11 @@
     <string name="delete_confirm">Sil</string>
     <string name="delete_failed">Dosya silinemedi. Dosya yöneticinizden silin.</string>
     <string name="type_command">Komut</string>
+    <string name="probe_browser">Video, Glint\'in tarayıcısıyla aranıyor…</string>
+    <string name="probe_gallery">Bağlantı gallery-dl ile okunuyor…</string>
+    <string name="found_by_browser">yt-dlp bu bağlantıyı okuyamadı, bu yüzden videoyu Glint\'in tarayıcısı buldu.</string>
+    <string name="gallery_failed">gallery-dl bu bağlantıyı okuyamadı.</string>
+    <string name="gallery_hint">Gönderideki, albümdeki veya profildeki tüm resimleri ve videoları kaydeder.</string>
     <string name="section_downloads">İndirilenler</string>
     <string name="section_extras">Altyazılar ve ekstralar</string>
     <string name="section_network">Hesaplar ve ağ</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d dosya · %2$s</item>
         <item quantity="other">%1$d dosya · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl %s dosya buldu</item>
+        <item quantity="other">gallery-dl %s dosya buldu</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d resim</item>
+        <item quantity="other">%d resim</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">%s dosyayı indir</item>
+        <item quantity="other">%s dosyayı indir</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

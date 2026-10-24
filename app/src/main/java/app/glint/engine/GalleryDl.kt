@@ -10,6 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
+import org.json.JSONArray
 import org.json.JSONObject
 
 /**
@@ -73,6 +75,25 @@ object GalleryDl {
             }
         if (result.exitCode != 0) Log.w(Tag, "gallery-dl ended with ${result.exitCode}")
         return Outcome(synchronized(files) { files.toList() }, result.exitCode, result.errors)
+    }
+
+    /**
+     * What gallery-dl finds at [url], without downloading it: at most [limit] files are counted.
+     * Throws [Fallbacks.Failed] with gallery-dl's reason when it finds nothing.
+     */
+    suspend fun list(url: String, cookies: String?, settings: GlintSettings, limit: Int = 100): GalleryListing {
+        install()
+        val command = buildList {
+            add(NativeTools.python(appContext).absolutePath)
+            add(File(home(), "launcher.py").absolutePath)
+            addAll(GalleryDlOutput.listArguments(cookies, settings, limit))
+            add(url)
+        }
+        val result =
+            withTimeoutOrNull(45_000) {
+                NativeTools.run(appContext, command, mapOf("GLINT_YTDLP" to NativeTools.ytDlp(appContext).absolutePath))
+            } ?: throw Fallbacks.Failed("gallery-dl took too long to read this link")
+        return GalleryDlOutput.listing(result.output, result.errors, result.exitCode, limit)
     }
 
     /** Updates gallery-dl from PyPI. True when a newer version was installed. */
@@ -204,12 +225,124 @@ internal object GalleryDlOutput {
         }
     }
 
+    /** Lists what is at a link as JSON, without downloading, counting up to [limit] files. */
+    fun listArguments(cookies: String?, settings: GlintSettings, limit: Int): List<String> = buildList {
+        add("--config-ignore")
+        // Albums and profiles lead to their posts; those are read too.
+        add("--resolve-json")
+        // One file past the limit says whether there are more.
+        addAll(listOf("--range", "1-${limit + 1}"))
+        addAll(listOf("--retries", "1"))
+        addAll(listOf("--http-timeout", "20"))
+        if (cookies != null) addAll(listOf("--cookies", cookies))
+        settings.proxy.trim().takeIf { it.isNotEmpty() }?.let { addAll(listOf("--proxy", it)) }
+    }
+
+    private val VideoExtensions = setOf("mp4", "webm", "mov", "m4v", "mkv", "avi", "flv", "m3u8", "ts", "3gp")
+    private val TitleKeys = listOf("title", "description", "content", "caption", "summary", "text")
+    private val UserKeys = listOf("fullname", "username", "uploader", "user", "author", "owner", "artist")
+    private val NameKeys = listOf("name", "nick", "nickname", "username")
+    private val PictureKeys = listOf("display_url", "thumbnail", "thumbnail_url", "preview")
+
+    /**
+     * What gallery-dl's JSON listing holds. Throws [Fallbacks.Failed] with its reason when it
+     * holds no files.
+     */
+    fun listing(output: String, errors: String, exitCode: Int, limit: Int): GalleryListing {
+        val start = output.indexOf('[')
+        val messages = if (start < 0) JSONArray() else runCatching { JSONArray(output.substring(start)) }.getOrDefault(JSONArray())
+        var files = 0
+        var pictures = 0
+        var videos = 0
+        var problem: String? = null
+        var title: String? = null
+        var user: String? = null
+        var thumbnail: String? = null
+        var site: String? = null
+        for (i in 0 until messages.length()) {
+            val message = messages.optJSONArray(i) ?: continue
+            val details = message.optJSONObject(message.length() - 1) ?: JSONObject()
+            when (message.optInt(0)) {
+                -1 -> problem = listOf(details.optString("error"), details.optString("message").trim())
+                    .filter { it.isNotEmpty() }.joinToString(": ")
+                2 -> Unit
+                3, 6 -> {
+                    files++
+                    val address = message.optString(1)
+                    val extension = details.optString("extension").lowercase().ifEmpty {
+                        address.substringBefore('?').substringAfterLast('.', "").lowercase()
+                    }
+                    when {
+                        message.optInt(0) == 6 -> Unit
+                        address.startsWith("ytdl:") || extension in VideoExtensions -> videos++
+                        DownloadOutput.isPicture("x.$extension") -> {
+                            pictures++
+                            if (thumbnail == null && address.startsWith("https://")) thumbnail = address
+                        }
+                    }
+                }
+                else -> continue
+            }
+            if (site == null) site = details.optString("category").takeIf { it.isNotEmpty() && it != "directlink" }
+            if (title == null) title = TitleKeys.firstNotNullOfOrNull { key -> firstLine(details.opt(key)) }
+            if (user == null) user = UserKeys.firstNotNullOfOrNull { key -> nameOf(details.opt(key)) }
+            if (thumbnail == null) {
+                thumbnail = PictureKeys.firstNotNullOfOrNull { key -> details.optString(key).takeIf { it.startsWith("https://") } }
+            }
+        }
+        if (files == 0) throw Fallbacks.Failed(problem ?: failure(errors, exitCode))
+        return GalleryListing(
+            files = minOf(files, limit),
+            pictures = pictures,
+            videos = videos,
+            more = files > limit,
+            title = title ?: user,
+            thumbnail = thumbnail,
+            site = site?.replaceFirstChar { it.uppercase() },
+        )
+    }
+
+    private fun firstLine(value: Any?): String? {
+        val line = (value as? String)?.lines()?.firstOrNull { it.isNotBlank() }?.trim() ?: return null
+        return if (line.length > 150) line.take(150).trimEnd() + "…" else line
+    }
+
+    private fun nameOf(value: Any?): String? =
+        when (value) {
+            is String -> value.trim().ifEmpty { null }
+            is JSONObject -> NameKeys.firstNotNullOfOrNull { key -> value.optString(key).trim().ifEmpty { null } }
+            else -> null
+        }
+
+    /** Why gallery-dl got nothing, from what it printed and how it ended. */
+    fun failure(errors: String, exitCode: Int): String {
+        val lines = errors.lines().map { it.trim() }.filter { it.isNotEmpty() }
+        val reported = lines.lastOrNull { it.contains("[error]") } ?: lines.lastOrNull()
+        return reported
+            ?: when {
+                exitCode and Unsupported != 0 -> "Unsupported URL"
+                exitCode and NeedsSignIn != 0 -> "gallery-dl: this link requires authentication"
+                else -> "gallery-dl found nothing to download at this link"
+            }
+    }
+
     /** The path of a file gallery-dl saved or already had, from one line it printed. */
     fun savedFile(line: String): String? {
         val path = line.removePrefix("# ").trim()
         return path.takeIf { it.startsWith("/") }
     }
 }
+
+/** What gallery-dl found at a link; [more] when it holds more than the [files] counted. */
+class GalleryListing(
+    val files: Int,
+    val pictures: Int,
+    val videos: Int,
+    val more: Boolean,
+    val title: String?,
+    val thumbnail: String?,
+    val site: String?,
+)
 
 /** The newest gallery-dl on PyPI. */
 internal class GalleryDlRelease(val version: String, val wheelUrl: String, val sha256: String) {

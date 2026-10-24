@@ -9,7 +9,7 @@ import kotlinx.coroutines.withContext
 
 /**
  * Python and ffmpeg as the yt-dlp library unpacks them, for running other tools with them:
- * gallery-dl, and ffmpeg to join a video and its sound. The paths and environment match
+ * gallery-dl, ffmpeg to join a video and its sound, and ffprobe to measure them. The paths and environment match
  * youtubedl-android's own (library 0.17), which unpacks everything before yt-dlp first runs.
  */
 internal object NativeTools {
@@ -24,6 +24,8 @@ internal object NativeTools {
     fun python(context: Context) = File(nativeDir(context), "libpython.so")
 
     fun ffmpeg(context: Context) = File(nativeDir(context), "libffmpeg.so")
+
+    private fun ffprobe(context: Context) = File(nativeDir(context), "libffprobe.so")
 
     /** yt-dlp itself, a Python zip application that gallery-dl can import for some videos. */
     fun ytDlp(context: Context) = File(File(context.noBackupFilesDir, LibraryFolder), "yt-dlp/yt-dlp")
@@ -88,20 +90,39 @@ internal object NativeTools {
             }
         }
 
-    /** Keeps only the sound of [input], without re-encoding it. */
-    suspend fun extractAudio(context: Context, input: File, output: File) {
+    /**
+     * Keeps only the sound of [input]: as it is, or converted to [codec] ("mp3" or "opus").
+     */
+    suspend fun extractAudio(context: Context, input: File, output: File, codec: String? = null) {
+        val encoding =
+            when (codec) {
+                "mp3" -> listOf("-c:a", "libmp3lame", "-q:a", "2")
+                "opus" -> listOf("-c:a", "libopus", "-b:a", "128k")
+                else -> listOf("-c:a", "copy")
+            }
         val result =
             run(
                 context,
-                listOf(
-                    ffmpeg(context).absolutePath, "-y", "-loglevel", "error",
-                    "-i", input.absolutePath, "-vn", "-map", "0:a:0", "-c:a", "copy",
-                    output.absolutePath,
-                ),
+                listOf(ffmpeg(context).absolutePath, "-y", "-loglevel", "error", "-i", input.absolutePath, "-vn", "-map", "0:a:0") +
+                    encoding + output.absolutePath,
             )
         check(result.exitCode == 0 && output.isFile && output.length() > 0) {
             "ffmpeg could not take the sound out: ${result.errors.trim().takeLast(400)}"
         }
+    }
+
+    /** The length of a video or sound file in seconds, or null when ffprobe cannot tell. */
+    suspend fun duration(context: Context, file: File): Double? {
+        val probe = ffprobe(context).takeIf { it.isFile } ?: return null
+        val result =
+            run(
+                context,
+                listOf(
+                    probe.absolutePath, "-v", "error", "-show_entries", "format=duration",
+                    "-of", "default=noprint_wrappers=1:nokey=1", file.absolutePath,
+                ),
+            )
+        return result.output.lineSequence().firstNotNullOfOrNull { it.trim().toDoubleOrNull() }?.takeIf { it > 0 }
     }
 
     /** Joins a video-only file and an audio-only file into [output] without re-encoding. */

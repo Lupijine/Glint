@@ -77,6 +77,11 @@
     <string name="delete_confirm">Hapus</string>
     <string name="delete_failed">File tidak dapat dihapus. Hapus dari pengelola file Anda.</string>
     <string name="type_command">Perintah</string>
+    <string name="probe_browser">Mencari video dengan browser Glint…</string>
+    <string name="probe_gallery">Membaca link dengan gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp tidak dapat membaca link ini, jadi browser Glint menemukan videonya.</string>
+    <string name="gallery_failed">gallery-dl tidak dapat membaca link ini.</string>
+    <string name="gallery_hint">Menyimpan setiap gambar dan video dari postingan, album, atau profil.</string>
     <string name="section_downloads">Unduhan</string>
     <string name="section_extras">Subtitel dan ekstra</string>
     <string name="section_network">Akun dan jaringan</string>
@@ -257,6 +262,15 @@
     </plurals>
     <plurals name="library_summary">
         <item quantity="other">%1$d file · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="other">gallery-dl menemukan %s file</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="other">%d gambar</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="other">Unduh %s file</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="other">%s</item>

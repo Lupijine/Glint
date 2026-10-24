@@ -77,6 +77,11 @@
     <string name="delete_confirm">Excluir</string>
     <string name="delete_failed">Não foi possível excluir o arquivo. Exclua-o pelo seu gerenciador de arquivos.</string>
     <string name="type_command">Comando</string>
+    <string name="probe_browser">Procurando o vídeo com o navegador do Glint…</string>
+    <string name="probe_gallery">Lendo o link com o gallery-dl…</string>
+    <string name="found_by_browser">O yt-dlp não conseguiu ler este link, então o navegador do Glint encontrou o vídeo.</string>
+    <string name="gallery_failed">O gallery-dl não conseguiu ler este link.</string>
+    <string name="gallery_hint">Salva todas as imagens e vídeos da publicação, do álbum ou do perfil.</string>
     <string name="section_downloads">Downloads</string>
     <string name="section_extras">Legendas e extras</string>
     <string name="section_network">Contas e rede</string>
@@ -265,6 +270,21 @@
         <item quantity="one">%1$d arquivo · %2$s</item>
         <item quantity="many">%1$d de arquivos · %2$s</item>
         <item quantity="other">%1$d arquivos · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">O gallery-dl encontrou %s arquivo</item>
+        <item quantity="many">O gallery-dl encontrou %s de arquivos</item>
+        <item quantity="other">O gallery-dl encontrou %s arquivos</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d imagem</item>
+        <item quantity="many">%d de imagens</item>
+        <item quantity="other">%d imagens</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Baixar %s arquivo</item>
+        <item quantity="many">Baixar %s de arquivos</item>
+        <item quantity="other">Baixar %s arquivos</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

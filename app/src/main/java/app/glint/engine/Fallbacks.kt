@@ -20,7 +20,10 @@ internal object Fallbacks {
     private const val Tag = "GlintFallback"
 
     /** What another way saved, with what it learned about the post. */
-    class Found(val files: List<File>, val title: String?, val thumbnail: String?)
+    class Found(val files: List<File>, val title: String?, val thumbnail: String?, val durationSeconds: Int = 0)
+
+    /** A way that was chosen and could not get the link, saying why. */
+    class Failed(message: String) : Exception(message)
 
     enum class Way { Browser, Gallery }
 
@@ -54,17 +57,47 @@ internal object Fallbacks {
         }
     }
 
-    /** Whether another way may succeed where yt-dlp failed with [message]. */
-    fun mayHelp(item: DownloadItem, message: String?): Boolean {
-        // Commands and clips are yt-dlp's own work.
-        if (item.customArgs != null || item.sectionStart != null) return false
-        if (ways(item.url).isEmpty()) return false
+    /** Whether gallery-dl may read [url]: any site but YouTube, which is yt-dlp's. */
+    fun galleryMayRead(url: String): Boolean {
+        val host = hostOf(url) ?: return false
+        return !host.isOn(YouTubeHosts) && host.contains('.')
+    }
+
+    /** Whether another way may succeed where yt-dlp failed to read [url] with [message]. */
+    fun mayHelp(url: String, message: String?): Boolean {
+        if (ways(url).isEmpty()) return false
         return when (ErrorKind.of(message)) {
             ErrorKind.Network, ErrorKind.Storage, ErrorKind.Folder, ErrorKind.Drm, ErrorKind.NotStarted,
             ErrorKind.Geo, ErrorKind.RateLimited, ErrorKind.BotCheck -> false
             else -> true
         }
     }
+
+    /** Whether another way may succeed where yt-dlp failed to download [item] with [message]. */
+    fun mayHelp(item: DownloadItem, message: String?): Boolean {
+        // Commands and clips are yt-dlp's own work, and a chosen way is not followed by others.
+        if (item.tool != Tool.YtDlp || item.customArgs != null || item.sectionStart != null) return false
+        return mayHelp(item.url, message)
+    }
+
+    /**
+     * Downloads [item] with the way chosen for it ([DownloadItem.tool]). Throws [Failed] with
+     * the reason when it gets nothing.
+     */
+    suspend fun runChosen(
+        context: Context,
+        item: DownloadItem,
+        directory: File,
+        workDirectory: File,
+        cookies: String?,
+        settings: GlintSettings,
+        onProgress: (Float?) -> Unit,
+    ): Found =
+        when (item.tool) {
+            Tool.GalleryDl -> viaGallery(item, directory, cookies, settings, onProgress, explain = true)
+            Tool.Browser -> viaBrowser(context, item, directory, workDirectory, onProgress)
+            Tool.YtDlp -> null
+        } ?: throw Failed("Glint's browser found no video on this page")
 
     /**
      * Tries the other ways in turn, saving into [directory]. Null when none found anything;
@@ -106,13 +139,22 @@ internal object Fallbacks {
         cookies: String?,
         settings: GlintSettings,
         onProgress: (Float?) -> Unit,
+        explain: Boolean = false,
     ): Found? {
         onProgress(null)
         val outcome = GalleryDl.download(item.url, directory, cookies, settings) { onProgress(null) }
         val inside = directory.canonicalFile
         val files = outcome.files.map { it.canonicalFile }.filter { it.isFile && it.parentFile == inside }
-        if (files.isEmpty()) return null
-        return Found(files, title = null, thumbnail = null)
+        if (files.isNotEmpty()) return Found(files, title = null, thumbnail = null)
+        if (explain) throw Failed(GalleryDlOutput.failure(outcome.errors, outcome.exitCode))
+        return null
+    }
+
+    /** A title for a video whose page gave none: the site and the video's id. */
+    fun untitled(pageUrl: String, fallback: String = "video"): String {
+        val site = siteName(pageUrl)
+        val id = MediaLinks.targetOf(pageUrl)
+        return listOfNotNull(site.ifEmpty { null }, id).joinToString(" ").ifEmpty { fallback }
     }
 
     private suspend fun viaBrowser(
@@ -123,35 +165,66 @@ internal object Fallbacks {
         onProgress: (Float?) -> Unit,
     ): Found? {
         onProgress(null)
-        val capture = BrowserCapture.find(context, item.url) ?: return null
-        val base = MediaLinks.fileName(capture.title ?: item.title.takeIf { it != item.url }, fallback = "video")
-        val audioOnly = item.type == MediaType.Audio
-        // The download id in the name keeps it apart until the final name is chosen.
-        val target = File(directory, "$base [${item.id}]." + if (audioOnly) "m4a" else "mp4")
+        val quality = BrowserQuality.entries.firstOrNull { it.name == item.formatSelector } ?: BrowserQuality.Best
+        val capture = BrowserCapture.find(context, item.url, quality) ?: return null
+        val plan = capture.plan
+        if (plan is MediaPlan.None) return null
+        // The title the person saw in the new download sheet, else the page's.
+        val title =
+            item.title.takeIf { it.isNotBlank() && it != item.url } ?: capture.title ?: untitled(capture.pageUrl)
+        val base = MediaLinks.fileName(title, fallback = "video")
         val headers = mapOf("User-Agent" to capture.userAgent, "Referer" to capture.pageUrl)
         workDirectory.mkdirs()
-        val plan = capture.plan
-        when {
-            plan is MediaPlan.None -> return null
-            audioOnly && plan is MediaPlan.Separate -> fetch(plan.audio, target, headers, onProgress)
-            audioOnly && plan is MediaPlan.Single -> {
-                val whole = File(workDirectory, "browser-whole.mp4")
-                fetch(plan.url, whole, headers, onProgress)
-                NativeTools.extractAudio(context, whole, target)
-                whole.delete()
+        // The download id in the name keeps it apart until the final name is chosen.
+        fun named(extension: String) = File(directory, "$base [${item.id}].$extension")
+
+        /** The sound of [input] in the chosen audio format, or as it is if converting fails. */
+        suspend fun sound(input: File): File {
+            val codec = item.audioFormat.codec?.takeIf { it != "m4a" }
+            if (codec != null) {
+                val converted = named(codec)
+                val made = try {
+                    NativeTools.extractAudio(context, input, converted, codec)
+                    true
+                } catch (error: CancellationException) {
+                    throw error
+                } catch (error: Exception) {
+                    Log.w(Tag, "Could not convert the sound to $codec: ${error.message}")
+                    converted.delete()
+                    false
+                }
+                if (made) return converted
             }
-            plan is MediaPlan.Single -> fetch(plan.url, target, headers, onProgress)
-            plan is MediaPlan.Separate -> {
+            return named("m4a").also { NativeTools.extractAudio(context, input, it) }
+        }
+
+        val saved: File =
+            if (item.type == MediaType.Audio) {
+                val source = File(workDirectory, "browser-source.mp4")
+                fetch(if (plan is MediaPlan.Separate) plan.audio else (plan as MediaPlan.Single).url, source, headers, onProgress)
+                sound(source).also { source.delete() }
+            } else if (plan is MediaPlan.Separate) {
                 val video = File(workDirectory, "browser-video.mp4")
                 val audio = File(workDirectory, "browser-audio.m4a")
                 fetch(plan.video, video, headers) { onProgress(it?.let { part -> part * 0.8f }) }
                 fetch(plan.audio, audio, headers) { onProgress(it?.let { part -> 0.8f + part * 0.2f }) }
-                NativeTools.mux(context, video, audio, target)
-                video.delete()
-                audio.delete()
+                // A picture and a sound of different lengths belong to different videos.
+                val videoLength = NativeTools.duration(context, video)
+                val audioLength = NativeTools.duration(context, audio)
+                if (videoLength != null && audioLength != null && !MediaLinks.sameLength(videoLength, audioLength)) {
+                    video.delete()
+                    audio.delete()
+                    throw Failed("The picture and the sound on the page belong to different videos")
+                }
+                named("mp4").also {
+                    NativeTools.mux(context, video, audio, it)
+                    video.delete()
+                    audio.delete()
+                }
+            } else {
+                named("mp4").also { fetch((plan as MediaPlan.Single).url, it, headers, onProgress) }
             }
-        }
-        return Found(listOf(target.canonicalFile), capture.title, capture.thumbnail)
+        return Found(listOf(saved.canonicalFile), title, capture.thumbnail, capture.durationSeconds)
     }
 
     /** Downloads one file the page pointed to, with the browser's sign-in. */

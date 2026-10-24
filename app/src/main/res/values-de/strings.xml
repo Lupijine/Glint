@@ -77,6 +77,11 @@
     <string name="delete_confirm">Löschen</string>
     <string name="delete_failed">Die Datei konnte nicht gelöscht werden. Lösche sie in deinem Dateimanager.</string>
     <string name="type_command">Befehl</string>
+    <string name="probe_browser">Video wird mit dem Browser von Glint gesucht…</string>
+    <string name="probe_gallery">Link wird mit gallery-dl gelesen…</string>
+    <string name="found_by_browser">yt-dlp konnte diesen Link nicht lesen, daher hat der Browser von Glint das Video gefunden.</string>
+    <string name="gallery_failed">gallery-dl konnte diesen Link nicht lesen.</string>
+    <string name="gallery_hint">Speichert alle Bilder und Videos des Beitrags, Albums oder Profils.</string>
     <string name="section_downloads">Downloads</string>
     <string name="section_extras">Untertitel und Extras</string>
     <string name="section_network">Konten und Netzwerk</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d Datei · %2$s</item>
         <item quantity="other">%1$d Dateien · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl hat %s Datei gefunden</item>
+        <item quantity="other">gallery-dl hat %s Dateien gefunden</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d Bild</item>
+        <item quantity="other">%d Bilder</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">%s Datei herunterladen</item>
+        <item quantity="other">%s Dateien herunterladen</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

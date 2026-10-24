@@ -77,6 +77,11 @@
     <string name="delete_confirm">Padam</string>
     <string name="delete_failed">Fail tidak dapat dipadam. Padamkannya daripada pengurus fail anda.</string>
     <string name="type_command">Arahan</string>
+    <string name="probe_browser">Mencari video dengan pelayar Glint…</string>
+    <string name="probe_gallery">Membaca pautan dengan gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp tidak dapat membaca pautan ini, jadi pelayar Glint menemui video itu.</string>
+    <string name="gallery_failed">gallery-dl tidak dapat membaca pautan ini.</string>
+    <string name="gallery_hint">Menyimpan setiap gambar dan video daripada siaran, album atau profil.</string>
     <string name="section_downloads">Muat turun</string>
     <string name="section_extras">Sari kata dan tambahan</string>
     <string name="section_network">Akaun dan rangkaian</string>
@@ -257,6 +262,15 @@
     </plurals>
     <plurals name="library_summary">
         <item quantity="other">%1$d fail · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="other">gallery-dl menemui %s fail</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="other">%d gambar</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="other">Muat turun %s fail</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="other">%s</item>

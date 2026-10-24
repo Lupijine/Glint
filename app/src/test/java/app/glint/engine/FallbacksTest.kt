@@ -56,10 +56,13 @@ class MediaLinksTest {
         assertNull(MediaLinks.mediaUrl("https://example.com/clip.mp4"))
     }
 
-    private fun stream(name: String, tag: String, bitrate: Int): String {
-        val note = Base64.getUrlEncoder().withoutPadding().encodeToString("""{"vencode_tag":"$tag","bitrate":$bitrate}""".toByteArray())
+    private fun stream(name: String, tag: String, bitrate: Int, video: String? = null): String {
+        val id = video?.let { ""","xpv_asset_id":$it""" }.orEmpty()
+        val note = Base64.getUrlEncoder().withoutPadding().encodeToString("""{"vencode_tag":"$tag","bitrate":$bitrate$id}""".toByteArray())
         return "https://video.fbcdn.net/$name.mp4?efg=$note&oh=1"
     }
+
+    private fun page(vararg urls: String) = urls.map { MediaLinks.PageFile(it, small = false, distance = 0) }
 
     @Test
     fun `streams are told apart by the note in their address`() {
@@ -67,6 +70,8 @@ class MediaLinksTest {
         assertEquals(MediaLinks.Kind.VideoOnly, MediaLinks.kindOf(stream("v", "dash_baseline_1_v1", 900)))
         assertEquals(MediaLinks.Kind.Complete, MediaLinks.kindOf(stream("p", "xpv_progressive.INSTAGRAM", 900)))
         assertEquals(MediaLinks.Kind.Unknown, MediaLinks.kindOf("https://video.fbcdn.net/x.mp4?oh=1"))
+        assertEquals("777888999", MediaLinks.videoOf(stream("v", "dash_baseline_1_v1", 900, video = "777888999")))
+        assertNull(MediaLinks.videoOf(stream("v", "dash_baseline_1_v1", 900)))
     }
 
     @Test
@@ -76,11 +81,110 @@ class MediaLinksTest {
         val sound = stream("sound", "dash_ln_heaac_vbr3_audio", 128)
         val whole = stream("whole", "progressive", 1000)
 
-        assertEquals(MediaPlan.Single("https://page/hd.mp4"), MediaLinks.choose(listOf("https://page/hd.mp4"), listOf(whole)))
-        assertEquals(MediaPlan.Single(whole), MediaLinks.choose(emptyList(), listOf(low, whole, sound)))
-        assertEquals(MediaPlan.Separate(high, sound), MediaLinks.choose(emptyList(), listOf(low, sound, high)))
-        assertEquals(MediaPlan.Single(high), MediaLinks.choose(emptyList(), listOf(high)))
-        assertEquals(MediaPlan.None, MediaLinks.choose(emptyList(), emptyList()))
+        assertEquals(MediaPlan.Single("https://page/hd.mp4"), MediaLinks.choose(page("https://page/hd.mp4"), listOf(whole)).plan)
+        assertEquals(MediaPlan.Single(whole), MediaLinks.choose(emptyList(), listOf(low, whole, sound)).plan)
+        assertEquals(MediaPlan.Separate(high, sound), MediaLinks.choose(emptyList(), listOf(low, sound, high)).plan)
+        assertEquals(MediaPlan.Single(high), MediaLinks.choose(emptyList(), listOf(high)).plan)
+        assertEquals(MediaPlan.None, MediaLinks.choose(emptyList(), emptyList()).plan)
+        // A smaller quality takes the lightest video stream.
+        assertEquals(
+            MediaPlan.Separate(low, sound),
+            MediaLinks.choose(emptyList(), listOf(low, sound, high), quality = BrowserQuality.Small).plan,
+        )
+    }
+
+    @Test
+    fun `a video's picture is never joined with another video's sound`() {
+        val wantedPicture = stream("wanted-v", "dash_baseline_1_v1", 900, video = "111111111")
+        val wantedSound = stream("wanted-a", "dash_ln_heaac_vbr3_audio", 128, video = "111111111")
+        val otherPicture = stream("other-v", "dash_baseline_1_v1", 2500, video = "222222222")
+        val otherSound = stream("other-a", "dash_ln_heaac_vbr3_audio", 160, video = "222222222")
+        val fetched = listOf(otherPicture, wantedSound, wantedPicture, wantedSound, otherSound)
+
+        val named = MediaLinks.choose(emptyList(), fetched, target = "111111111")
+        assertEquals(MediaPlan.Separate(wantedPicture, wantedSound), named.plan)
+        assertTrue(named.sure)
+        // Without the id, the video the player fetched the most is taken, and not as sure.
+        val guessed = MediaLinks.choose(emptyList(), fetched + wantedPicture)
+        assertEquals(MediaPlan.Separate(wantedPicture, wantedSound), guessed.plan)
+        assertFalse(guessed.sure)
+        // A picture alone of the wanted video is not joined with the other one's sound.
+        assertEquals(
+            MediaPlan.Single(wantedPicture),
+            MediaLinks.choose(emptyList(), listOf(wantedPicture, otherSound), target = "111111111").plan,
+        )
+    }
+
+    @Test
+    fun `files named next to the wanted video come first, and others far away are left out`() {
+        val filler = " ".repeat(30_000)
+        val html =
+            """{"id":"222222222","browser_native_hd_url":"https:\/\/v.fbcdn.net\/other.mp4"}""" + filler +
+                """{"id":"111111111","browser_native_sd_url":"https:\/\/v.fbcdn.net\/sd.mp4",""" +
+                """"browser_native_hd_url":"https:\/\/v.fbcdn.net\/hd.mp4"}"""
+        val files = MediaLinks.filesInPage(html, target = "111111111")
+        assertEquals(listOf("https://v.fbcdn.net/hd.mp4", "https://v.fbcdn.net/sd.mp4"), files.map { it.url })
+        assertEquals(listOf(false, true), files.map { it.small })
+
+        val best = MediaLinks.choose(files, emptyList(), "111111111")
+        assertEquals(MediaPlan.Single("https://v.fbcdn.net/hd.mp4"), best.plan)
+        assertTrue(best.sure)
+        assertTrue(best.offersSmall)
+        assertEquals(
+            MediaPlan.Single("https://v.fbcdn.net/sd.mp4"),
+            MediaLinks.choose(files, emptyList(), "111111111", BrowserQuality.Small).plan,
+        )
+        // A page that never names the video: its files may be another video's.
+        val unnamed = MediaLinks.filesInPage(html, target = "333333333")
+        assertTrue(unnamed.all { it.distance == null })
+        assertFalse(MediaLinks.choose(unnamed, emptyList(), "333333333").sure)
+        // A longer id that only contains the wanted one is another video.
+        assertTrue(MediaLinks.filesInPage(html, target = "11111111").all { it.distance == null })
+    }
+
+    @Test
+    fun `the wanted video is named by its address`() {
+        assertEquals("1234567890", MediaLinks.targetOf("https://www.facebook.com/reel/1234567890/?s=1"))
+        assertEquals("1234567890", MediaLinks.targetOf("https://www.facebook.com/watch/?v=1234567890"))
+        assertEquals("1234567890", MediaLinks.targetOf("https://m.facebook.com/somepage/videos/1234567890/"))
+        assertEquals("1234567890", MediaLinks.targetOf("https://www.facebook.com/somepage/videos/a-title/1234567890"))
+        assertEquals("C1a2B3c4D5e", MediaLinks.targetOf("https://www.instagram.com/reel/C1a2B3c4D5e/?igsh=x"))
+        assertEquals("C1a2B3c4D5e", MediaLinks.targetOf("https://www.instagram.com/someone/p/C1a2B3c4D5e/"))
+        // A share link does not name it; the page it leads to does.
+        assertNull(MediaLinks.targetOf("https://www.facebook.com/share/r/1AbCdEf/"))
+        assertNull(MediaLinks.targetOf("https://example.com/watch?v=1234567890"))
+    }
+
+    @Test
+    fun `page titles lose the site, the counts and the account`() {
+        assertEquals("Sunset over the bay", MediaLinks.cleanTitle("12K views · 300 reactions | Sunset over the bay | By Some Page | Facebook"))
+        assertEquals("Some Page", MediaLinks.cleanTitle("1.2M views · 30K reactions | By Some Page"))
+        assertEquals("Cooking at home", MediaLinks.cleanTitle("(3) Cooking at home | Facebook"))
+        assertEquals("my caption", MediaLinks.cleanTitle("Someone on Instagram: \"my caption\""))
+        assertNull(MediaLinks.cleanTitle("Facebook"))
+        assertNull(MediaLinks.cleanTitle("(12) Reels | Facebook"))
+        assertNull(MediaLinks.cleanTitle("Log in or sign up to view"))
+        assertNull(MediaLinks.cleanTitle(null))
+    }
+
+    @Test
+    fun `the caption and picture come from the wanted video's data`() {
+        val html =
+            """{"id":"222222222","message":{"ranges":[],"text":"Not this one"}}""" + " ".repeat(30_000) +
+                """{"id":"111111111","message":{"ranges":[],"text":"This one\nsecond line"},""" +
+                """"preferred_thumbnail":{"image":{"uri":"https:\/\/scontent.fbcdn.net\/t.jpg"}}}"""
+        assertEquals("This one", MediaLinks.captionInPage(html, "111111111"))
+        assertEquals("https://scontent.fbcdn.net/t.jpg", MediaLinks.thumbnailInPage(html, "111111111"))
+        assertNull(MediaLinks.captionInPage(html, null))
+        assertNull(MediaLinks.captionInPage(html, "333333333"))
+    }
+
+    @Test
+    fun `a picture and a sound of one video last as long`() {
+        assertTrue(MediaLinks.sameLength(30.0, 31.5))
+        assertTrue(MediaLinks.sameLength(600.0, 620.0))
+        assertFalse(MediaLinks.sameLength(15.0, 45.0))
+        assertFalse(MediaLinks.sameLength(600.0, 660.0))
     }
 
     @Test
@@ -143,6 +247,62 @@ class GalleryDlTest {
     }
 
     @Test
+    fun `gallery-dl's listing counts pictures and videos and finds a title`() {
+        val output =
+            """[
+              [2, {"category": "instagram", "description": "A day at the sea\nmore", "username": "someone"}],
+              [3, "https://scontent.cdninstagram.com/a.jpg?x=1", {"category": "instagram", "extension": "jpg"}],
+              [3, "https://scontent.cdninstagram.com/b.mp4", {"category": "instagram", "extension": "mp4"}],
+              [3, "https://scontent.cdninstagram.com/c.webp", {"category": "instagram", "extension": "webp"}]
+            ]"""
+        val listing = GalleryDlOutput.listing(output, "", 0, limit = 100)
+        assertEquals(3, listing.files)
+        assertEquals(2, listing.pictures)
+        assertEquals(1, listing.videos)
+        assertFalse(listing.more)
+        assertEquals("A day at the sea", listing.title)
+        assertEquals("https://scontent.cdninstagram.com/a.jpg?x=1", listing.thumbnail)
+        assertEquals("Instagram", listing.site)
+
+        // One file past the limit says there are more; the account names a post without words.
+        val many =
+            "[" + (1..4).joinToString(",") { """[3, "https://i.imgur.com/$it.png", {"category": "imgur", "user": {"name": "pat"}}]""" } + "]"
+        val more = GalleryDlOutput.listing(many, "", 0, limit = 3)
+        assertEquals(3, more.files)
+        assertTrue(more.more)
+        assertEquals("pat", more.title)
+    }
+
+    @Test
+    fun `gallery-dl's reason is kept when it finds nothing`() {
+        val failed =
+            runCatching {
+                GalleryDlOutput.listing("""[[-1, {"error": "AuthRequired", "message": "Login required"}]]""", "", 0, 100)
+            }.exceptionOrNull()
+        assertEquals("AuthRequired: Login required", failed?.message)
+        assertEquals(ErrorKind.SignIn, ErrorKind.of(failed?.message))
+
+        val unsupported =
+            runCatching {
+                GalleryDlOutput.listing("", "[gallery-dl][error] Unsupported URL 'https://x.com/'\n", 64, 100)
+            }.exceptionOrNull()
+        assertEquals("[gallery-dl][error] Unsupported URL 'https://x.com/'", unsupported?.message)
+        assertEquals("Unsupported URL 'https://x.com/'", ErrorText.summarize(unsupported?.message))
+        assertEquals(ErrorKind.Unsupported, ErrorKind.of(unsupported?.message))
+        assertEquals("gallery-dl found nothing to download at this link", GalleryDlOutput.failure("", 0))
+    }
+
+    @Test
+    fun `gallery-dl lists without downloading`() {
+        val args = GalleryDlOutput.listArguments("/c.txt", GlintSettings(), limit = 50)
+        assertTrue("--config-ignore" in args)
+        assertTrue("--resolve-json" in args)
+        assertEquals("1-51", args[args.indexOf("--range") + 1])
+        assertEquals("/c.txt", args[args.indexOf("--cookies") + 1])
+        assertFalse("-D" in args)
+    }
+
+    @Test
     fun `versions compare by number`() {
         assertTrue(GalleryDlRelease.isNewer("1.32.18", "1.32.17"))
         assertTrue(GalleryDlRelease.isNewer("1.33.0", "1.32.99"))
@@ -189,6 +349,41 @@ class FallbacksTest {
         assertFalse(Fallbacks.mayHelp(item("https://www.facebook.com/v/1", args = "-x"), "Cannot parse data"))
         assertFalse(Fallbacks.mayHelp(item("https://www.facebook.com/v/1", clip = true), "Cannot parse data"))
         assertFalse(Fallbacks.mayHelp(item("https://www.youtube.com/watch?v=1"), "Video unavailable"))
+    }
+
+    @Test
+    fun `a way chosen in the sheet is not followed by others`() {
+        val chosen = item("https://www.instagram.com/p/x/").copy(tool = Tool.GalleryDl)
+        assertFalse(Fallbacks.mayHelp(chosen, "Unsupported URL"))
+        assertTrue(Fallbacks.mayHelp("https://www.facebook.com/reel/1", "Cannot parse data"))
+        assertFalse(Fallbacks.mayHelp("https://www.youtube.com/watch?v=1", "Video unavailable"))
+    }
+
+    @Test
+    fun `gallery-dl is offered for every site but YouTube`() {
+        assertTrue(Fallbacks.galleryMayRead("https://www.instagram.com/p/x/"))
+        assertTrue(Fallbacks.galleryMayRead("https://imgur.com/a/x"))
+        assertFalse(Fallbacks.galleryMayRead("https://m.youtube.com/watch?v=1"))
+        assertFalse(Fallbacks.galleryMayRead("words"))
+    }
+
+    @Test
+    fun `an untitled video is named after its site and id`() {
+        assertEquals("Facebook 1234567890", Fallbacks.untitled("https://www.facebook.com/reel/1234567890/"))
+        assertEquals("Facebook", Fallbacks.untitled("https://www.facebook.com/share/r/abc/"))
+        assertEquals("video", Fallbacks.untitled("nothing"))
+    }
+
+    @Test
+    fun `the chosen way is kept with the download`() {
+        val stored = item("https://www.facebook.com/reel/1").copy(tool = Tool.Browser, formatSelector = "Small").toEntity()
+        assertEquals("Browser", stored.tool)
+        assertEquals(Tool.Browser, stored.toItemOrNull()?.tool)
+        // Rows from before, and yt-dlp's own, have no tool.
+        val plain = item("https://www.youtube.com/watch?v=1").toEntity()
+        assertNull(plain.tool)
+        assertEquals(Tool.YtDlp, plain.toItemOrNull()?.tool)
+        assertNull(plain.copy(tool = "SomethingNewer").toItemOrNull())
     }
 
     @Test

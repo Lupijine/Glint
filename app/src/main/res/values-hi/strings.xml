@@ -77,6 +77,11 @@
     <string name="delete_confirm">मिटाएं</string>
     <string name="delete_failed">फ़ाइल मिटाई नहीं जा सकी। इसे अपने फ़ाइल मैनेजर से मिटाएं।</string>
     <string name="type_command">कमांड</string>
+    <string name="probe_browser">Glint के ब्राउज़र से वीडियो खोजा जा रहा है…</string>
+    <string name="probe_gallery">gallery-dl से लिंक पढ़ा जा रहा है…</string>
+    <string name="found_by_browser">yt-dlp यह लिंक नहीं पढ़ सका, इसलिए Glint के ब्राउज़र ने वीडियो ढूँढा।</string>
+    <string name="gallery_failed">gallery-dl यह लिंक नहीं पढ़ सका।</string>
+    <string name="gallery_hint">पोस्ट, एल्बम या प्रोफ़ाइल की हर तस्वीर और वीडियो सहेजता है।</string>
     <string name="section_downloads">डाउनलोड</string>
     <string name="section_extras">सबटाइटल और अतिरिक्त</string>
     <string name="section_network">खाते और नेटवर्क</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d फ़ाइल · %2$s</item>
         <item quantity="other">%1$d फ़ाइलें · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl को %s फ़ाइल मिली</item>
+        <item quantity="other">gallery-dl को %s फ़ाइलें मिलीं</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d तस्वीर</item>
+        <item quantity="other">%d तस्वीरें</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">%s फ़ाइल डाउनलोड करें</item>
+        <item quantity="other">%s फ़ाइलें डाउनलोड करें</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

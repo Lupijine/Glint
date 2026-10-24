@@ -77,6 +77,11 @@
     <string name="delete_confirm">Verwijderen</string>
     <string name="delete_failed">Het bestand kon niet worden verwijderd. Verwijder het via je bestandsbeheer.</string>
     <string name="type_command">Opdracht</string>
+    <string name="probe_browser">Video zoeken met de browser van Glint…</string>
+    <string name="probe_gallery">Link lezen met gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp kon deze link niet lezen, dus de browser van Glint heeft de video gevonden.</string>
+    <string name="gallery_failed">gallery-dl kon deze link niet lezen.</string>
+    <string name="gallery_hint">Slaat elke afbeelding en video van het bericht, album of profiel op.</string>
     <string name="section_downloads">Downloads</string>
     <string name="section_extras">Ondertitels en extra’s</string>
     <string name="section_network">Accounts en netwerk</string>
@@ -261,6 +266,18 @@
     <plurals name="library_summary">
         <item quantity="one">%1$d bestand · %2$s</item>
         <item quantity="other">%1$d bestanden · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl heeft %s bestand gevonden</item>
+        <item quantity="other">gallery-dl heeft %s bestanden gevonden</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d afbeelding</item>
+        <item quantity="other">%d afbeeldingen</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">%s bestand downloaden</item>
+        <item quantity="other">%s bestanden downloaden</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

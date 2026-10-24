@@ -77,6 +77,11 @@
     <string name="delete_confirm">Șterge</string>
     <string name="delete_failed">Fișierul nu a putut fi șters. Șterge-l din managerul de fișiere.</string>
     <string name="type_command">Comandă</string>
+    <string name="probe_browser">Se caută videoclipul cu browserul Glint…</string>
+    <string name="probe_gallery">Se citește linkul cu gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp nu a putut citi acest link, așa că browserul Glint a găsit videoclipul.</string>
+    <string name="gallery_failed">gallery-dl nu a putut citi acest link.</string>
+    <string name="gallery_hint">Salvează toate imaginile și videoclipurile din postare, album sau profil.</string>
     <string name="section_downloads">Descărcări</string>
     <string name="section_extras">Subtitrări și extra</string>
     <string name="section_network">Conturi și rețea</string>
@@ -265,6 +270,21 @@
         <item quantity="one">%1$d fișier · %2$s</item>
         <item quantity="few">%1$d fișiere · %2$s</item>
         <item quantity="other">%1$d de fișiere · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl a găsit %s fișier</item>
+        <item quantity="few">gallery-dl a găsit %s fișiere</item>
+        <item quantity="other">gallery-dl a găsit %s de fișiere</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d imagine</item>
+        <item quantity="few">%d imagini</item>
+        <item quantity="other">%d de imagini</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Descarcă %s fișier</item>
+        <item quantity="few">Descarcă %s fișiere</item>
+        <item quantity="other">Descarcă %s de fișiere</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>

@@ -77,6 +77,11 @@
     <string name="delete_confirm">Usuń</string>
     <string name="delete_failed">Nie udało się usunąć pliku. Usuń go w menedżerze plików.</string>
     <string name="type_command">Polecenie</string>
+    <string name="probe_browser">Szukanie filmu w przeglądarce Glint…</string>
+    <string name="probe_gallery">Odczytywanie linku za pomocą gallery-dl…</string>
+    <string name="found_by_browser">yt-dlp nie mógł odczytać tego linku, więc film znalazła przeglądarka Glint.</string>
+    <string name="gallery_failed">gallery-dl nie mógł odczytać tego linku.</string>
+    <string name="gallery_hint">Zapisuje wszystkie zdjęcia i filmy z posta, albumu lub profilu.</string>
     <string name="section_downloads">Pobieranie</string>
     <string name="section_extras">Napisy i dodatki</string>
     <string name="section_network">Konta i sieć</string>
@@ -269,6 +274,24 @@
         <item quantity="few">%1$d pliki · %2$s</item>
         <item quantity="many">%1$d plików · %2$s</item>
         <item quantity="other">%1$d pliku · %2$s</item>
+    </plurals>
+    <plurals name="gallery_found">
+        <item quantity="one">gallery-dl znalazł %s plik</item>
+        <item quantity="few">gallery-dl znalazł %s pliki</item>
+        <item quantity="many">gallery-dl znalazł %s plików</item>
+        <item quantity="other">gallery-dl znalazł %s pliku</item>
+    </plurals>
+    <plurals name="count_pictures">
+        <item quantity="one">%d zdjęcie</item>
+        <item quantity="few">%d zdjęcia</item>
+        <item quantity="many">%d zdjęć</item>
+        <item quantity="other">%d zdjęcia</item>
+    </plurals>
+    <plurals name="download_files">
+        <item quantity="one">Pobierz %s plik</item>
+        <item quantity="few">Pobierz %s pliki</item>
+        <item quantity="many">Pobierz %s plików</item>
+        <item quantity="other">Pobierz %s pliku</item>
     </plurals>
     <plurals name="cookies_sites">
         <item quantity="one">%s</item>
