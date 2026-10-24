@@ -3,9 +3,15 @@ package app.glint
 import android.annotation.SuppressLint
 import android.net.Uri
 import android.os.Bundle
+import android.graphics.Bitmap
+import android.util.Log
 import android.view.ContextThemeWrapper
+import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
+import android.webkit.RenderProcessGoneDetail
+import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
@@ -29,6 +35,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,6 +76,9 @@ class SignInActivity : ComponentActivity() {
 
 /** How the sign-in browser presents itself to sites. */
 internal object SignInBrowser {
+    /** Logcat tag: `adb logcat -s GlintSignIn` shows what the sign-in pages did. */
+    const val Tag = "GlintSignIn"
+
     private val ChromeVersion = Regex("""Chrome/(\d+)""")
 
     /**
@@ -106,6 +116,11 @@ private fun SignInScreen(onDone: () -> Unit) {
     var progress by remember { mutableIntStateOf(0) }
     var webView by remember { mutableStateOf<WebView?>(null) }
     var canGoBack by remember { mutableStateOf(false) }
+    // Why the page did not load, shown instead of a blank page.
+    var loadError by remember { mutableStateOf<String?>(null) }
+    // A new browser replaces one whose page crashed, the next time a site is chosen.
+    var browser by remember { mutableIntStateOf(0) }
+    var rendererGone by remember { mutableStateOf(false) }
 
     BackHandler(enabled = canGoBack) { webView?.goBack() }
 
@@ -174,9 +189,23 @@ private fun SignInScreen(onDone: () -> Unit) {
             label = { it.label },
             onSelect = {
                 site = it
-                webView?.loadUrl(it.url)
+                if (rendererGone) {
+                    rendererGone = false
+                    loadError = null
+                    browser++
+                } else {
+                    webView?.loadUrl(it.url)
+                }
             },
         )
+        loadError?.let {
+            Text(
+                text = stringResource(R.string.probe_failed) + " " + it,
+                color = MaterialTheme.colorScheme.error,
+                fontSize = 13.sp,
+                modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
+            )
+        }
         if (progress in 1..99) {
             LinearProgressIndicator(
                 progress = { progress / 100f },
@@ -185,41 +214,85 @@ private fun SignInScreen(onDone: () -> Unit) {
                 trackColor = Color.Transparent,
             )
         }
-        AndroidView(
-            modifier = Modifier.fillMaxWidth().weight(1f),
-            factory = { context ->
-                // Sign-in pages are made light first. Glint's dark theme would ask them for dark
-                // mode, which some draw as light text on the browser's white background.
-                WebView(ContextThemeWrapper(context, android.R.style.Theme_Material_Light_NoActionBar)).apply {
-                    settings.javaScriptEnabled = true
-                    settings.domStorageEnabled = true
-                    // Some sign-in pages show nothing to browsers built into apps, so this one
-                    // introduces itself exactly as Chrome on Android does.
-                    settings.userAgentString = SignInBrowser.chromeUserAgent(settings.userAgentString)
-                    CookieManager.getInstance().setAcceptCookie(true)
-                    CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
-                    webViewClient =
-                        object : WebViewClient() {
-                            override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
-                                canGoBack = view.canGoBack()
-                            }
+        key(browser) {
+            AndroidView(
+                modifier = Modifier.fillMaxWidth().weight(1f),
+                factory = { context ->
+                    // Sign-in pages are made light first. Glint's dark theme would ask them for dark
+                    // mode, which some draw as light text on the browser's white background.
+                    WebView(ContextThemeWrapper(context, android.R.style.Theme_Material_Light_NoActionBar)).apply {
+                        settings.javaScriptEnabled = true
+                        settings.domStorageEnabled = true
+                        // Some sign-in pages show nothing to browsers built into apps, so this one
+                        // introduces itself exactly as Chrome on Android does.
+                        settings.userAgentString = SignInBrowser.chromeUserAgent(settings.userAgentString)
+                        CookieManager.getInstance().setAcceptCookie(true)
+                        CookieManager.getInstance().setAcceptThirdPartyCookies(this, true)
+                        webViewClient =
+                            object : WebViewClient() {
+                                override fun doUpdateVisitedHistory(view: WebView, url: String?, isReload: Boolean) {
+                                    canGoBack = view.canGoBack()
+                                }
 
-                            // Sites try to hand over to their own app (fb://, intent://); staying
-                            // on the web page is what signing in here needs.
-                            override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
-                                request.isForMainFrame && !SignInBrowser.isWebPage(request.url.scheme)
-                        }
-                    webChromeClient =
-                        object : android.webkit.WebChromeClient() {
-                            override fun onProgressChanged(view: WebView, newProgress: Int) {
-                                progress = newProgress
+                                override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
+                                    loadError = null
+                                    Log.i(SignInBrowser.Tag, "Loading $url")
+                                }
+
+                                override fun onPageFinished(view: WebView, url: String?) {
+                                    Log.i(SignInBrowser.Tag, "Loaded $url (${view.title})")
+                                }
+
+                                override fun onReceivedError(
+                                    view: WebView,
+                                    request: WebResourceRequest,
+                                    error: WebResourceError,
+                                ) {
+                                    if (!request.isForMainFrame) return
+                                    Log.w(SignInBrowser.Tag, "${request.url}: ${error.errorCode} ${error.description}")
+                                    loadError = "(${error.description})"
+                                }
+
+                                override fun onReceivedHttpError(
+                                    view: WebView,
+                                    request: WebResourceRequest,
+                                    response: WebResourceResponse,
+                                ) {
+                                    if (request.isForMainFrame) {
+                                        Log.w(SignInBrowser.Tag, "${request.url}: HTTP ${response.statusCode}")
+                                    }
+                                }
+
+                                // A crashed page must not take Glint down with it; choosing a site loads it again.
+                                override fun onRenderProcessGone(view: WebView, detail: RenderProcessGoneDetail): Boolean {
+                                    Log.w(SignInBrowser.Tag, "The page's renderer stopped (crashed: ${detail.didCrash()})")
+                                    loadError = "(renderer stopped)"
+                                    rendererGone = true
+                                    return true
+                                }
+
+                                // Sites try to hand over to their own app (fb://, intent://); staying
+                                // on the web page is what signing in here needs.
+                                override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean =
+                                    request.isForMainFrame && !SignInBrowser.isWebPage(request.url.scheme)
                             }
-                        }
-                    loadUrl(site.url)
-                    webView = this
-                }
-            },
-            onRelease = { it.destroy() },
-        )
+                        webChromeClient =
+                            object : android.webkit.WebChromeClient() {
+                                override fun onProgressChanged(view: WebView, newProgress: Int) {
+                                    progress = newProgress
+                                }
+
+                                override fun onConsoleMessage(message: ConsoleMessage): Boolean {
+                                    Log.i(SignInBrowser.Tag, "Page: ${message.message()} (${message.sourceId()}:${message.lineNumber()})")
+                                    return true
+                                }
+                            }
+                        loadUrl(site.url)
+                        webView = this
+                    }
+                },
+                onRelease = { it.destroy() },
+            )
+        }
     }
 }
