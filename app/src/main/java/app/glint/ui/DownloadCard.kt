@@ -60,6 +60,7 @@ import app.glint.engine.Clips
 import app.glint.engine.DownloadItem
 import app.glint.engine.DownloadManager
 import app.glint.engine.MediaType
+import app.glint.engine.ErrorKind
 import app.glint.engine.errorKind
 import app.glint.ui.icons.GlintIcons
 import app.glint.ui.theme.glassSurface
@@ -364,8 +365,11 @@ private fun ErrorDialog(item: DownloadItem, onDismiss: () -> Unit) {
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
-                Spacer(Modifier.height(8.dp))
-                Text(text = stringResource(item.errorKind.message), fontSize = 14.sp, lineHeight = 20.sp)
+                // "Tap for details" would be odd here, under the details themselves.
+                if (item.errorKind != ErrorKind.Unknown) {
+                    Spacer(Modifier.height(8.dp))
+                    Text(text = stringResource(item.errorKind.message), fontSize = 14.sp, lineHeight = 20.sp)
+                }
                 if (detail != null) {
                     Spacer(Modifier.height(16.dp))
                     Text(

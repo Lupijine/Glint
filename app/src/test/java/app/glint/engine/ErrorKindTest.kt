@@ -62,6 +62,16 @@ class ErrorKindTest {
         )
         assertKind(ErrorKind.Outdated, "[youtube] abc: Unable to extract uploader id; please report this issue")
         assertKind(ErrorKind.Outdated, "unable to download video data: HTTP Error 403: Forbidden")
+        assertKind(
+            ErrorKind.Outdated,
+            "[facebook] 761540702400580: Cannot parse data; please report this issue on " +
+                "https://github.com/yt-dlp/yt-dlp/issues?q= , filling out the appropriate issue template.",
+        )
+        // A dropped connection stays a network error even when yt-dlp asks for a report.
+        assertKind(
+            ErrorKind.Network,
+            "Unable to download webpage: <urlopen error [Errno 104] Connection reset by peer>; please report this issue",
+        )
     }
 
     @Test

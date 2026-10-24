@@ -66,6 +66,9 @@ enum class ErrorKind(@StringRes val message: Int) {
                             "HTTP Error 5\\d\\d|urlopen error|Unable to download (webpage|video data)",
                         Ignore,
                     ),
+                // Last: yt-dlp asks for a bug report when it cannot read a site's page, usually
+                // because the site changed. A newer yt-dlp is the fix, or the wait for one.
+                Outdated to Regex("Cannot parse data|please report this issue", Ignore),
             )
 
         /** The kind of error behind yt-dlp's [message], or [Unknown]. */
