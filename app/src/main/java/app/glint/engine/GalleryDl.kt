@@ -54,11 +54,12 @@ object GalleryDl {
     ): Outcome {
         install()
         val home = home()
+        val target = TumblrLinks.resolve(url)
         val command = buildList {
             add(NativeTools.python(appContext).absolutePath)
             add(File(home, "launcher.py").absolutePath)
             addAll(GalleryDlOutput.arguments(directory, cookies, settings, NativeTools.ffmpeg(appContext)))
-            add(url)
+            add(target)
         }
         val files = mutableListOf<File>()
         val result =
@@ -87,7 +88,7 @@ object GalleryDl {
             add(NativeTools.python(appContext).absolutePath)
             add(File(home(), "launcher.py").absolutePath)
             addAll(GalleryDlOutput.listArguments(cookies, settings, limit))
-            add(url)
+            add(TumblrLinks.resolve(url))
         }
         val result =
             withTimeoutOrNull(45_000) {
@@ -218,12 +219,20 @@ internal object GalleryDlOutput {
         // Names that every storage accepts, memory cards included.
         addAll(listOf("-o", "path-restrict=windows"))
         addAll(listOf("-o", "downloader.ytdl.raw-options=" + JSONObject(mapOf("ffmpeg_location" to ffmpeg.absolutePath))))
+        addAll(SiteOptions)
         if (cookies != null) addAll(listOf("--cookies", cookies))
         settings.proxy.trim().takeIf { it.isNotEmpty() }?.let { addAll(listOf("--proxy", it)) }
         settings.speedLimit.trim().takeIf { it.isNotEmpty() && GlintSettings.isValidSpeedLimit(it) }?.let {
             addAll(listOf("--limit-rate", it))
         }
     }
+
+    /**
+     * Choices for single sites. Tumblr: gallery-dl asks for each picture's full size, larger
+     * than the 2048 pixels Tumblr shows; when Tumblr refuses, it waits two minutes, twice, for
+     * every picture, so a post of a few pictures seemed never to finish. The shown size is used.
+     */
+    private val SiteOptions = listOf("-o", "extractor.tumblr.original=false")
 
     /** Lists what is at a link as JSON, without downloading, counting up to [limit] files. */
     fun listArguments(cookies: String?, settings: GlintSettings, limit: Int): List<String> = buildList {
@@ -234,6 +243,7 @@ internal object GalleryDlOutput {
         addAll(listOf("--range", "1-${limit + 1}"))
         addAll(listOf("--retries", "1"))
         addAll(listOf("--http-timeout", "20"))
+        addAll(SiteOptions)
         if (cookies != null) addAll(listOf("--cookies", cookies))
         settings.proxy.trim().takeIf { it.isNotEmpty() }?.let { addAll(listOf("--proxy", it)) }
     }

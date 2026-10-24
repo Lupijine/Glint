@@ -300,6 +300,7 @@ class GalleryDlTest {
         assertEquals("1-51", args[args.indexOf("--range") + 1])
         assertEquals("/c.txt", args[args.indexOf("--cookies") + 1])
         assertFalse("-D" in args)
+        assertTrue("extractor.tumblr.original=false" in args)
     }
 
     @Test
@@ -309,6 +310,22 @@ class GalleryDlTest {
         assertTrue(GalleryDlRelease.isNewer("1.32.17.1", "1.32.17"))
         assertFalse(GalleryDlRelease.isNewer("1.32.17", "1.32.17"))
         assertFalse(GalleryDlRelease.isNewer("1.9.0", "1.32.0"))
+    }
+}
+
+class TumblrLinksTest {
+    @Test
+    fun `tumblr's share links become the addresses gallery-dl reads`() {
+        assertEquals("https://www.tumblr.com/someblog/123456789", TumblrLinks.clean("https://at.tumblr.com/someblog/123456789/AbCdEf"))
+        assertEquals("https://www.tumblr.com/someblog/123456789", TumblrLinks.clean("https://www.tumblr.com/@someblog/123456789"))
+        assertEquals("https://www.tumblr.com/someblog", TumblrLinks.clean("tumblr.com/@someblog"))
+        // Links gallery-dl already reads stay as they are.
+        assertEquals("https://someblog.tumblr.com/post/123", TumblrLinks.clean(" https://someblog.tumblr.com/post/123 "))
+        assertEquals("https://www.tumblr.com/someblog/123/a-title", TumblrLinks.clean("https://www.tumblr.com/someblog/123/a-title"))
+        // A short link without the post's number is asked of Tumblr.
+        assertTrue(TumblrLinks.isShortLink(TumblrLinks.clean("https://at.tumblr.com/someblog/a-title/AbCdEf")))
+        assertTrue(TumblrLinks.isShortLink("https://tmblr.co/ZAbCdEf"))
+        assertFalse(TumblrLinks.isShortLink("https://www.tumblr.com/someblog/123"))
     }
 }
 
