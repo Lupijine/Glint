@@ -8,7 +8,6 @@ import android.util.Log
 import android.view.ContextThemeWrapper
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-import android.webkit.ConsoleMessage
 import android.webkit.CookieManager
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebChromeClient
@@ -159,16 +158,11 @@ class SignInActivity : ComponentActivity() {
                 override fun onPageStarted(view: WebView, url: String?, favicon: Bitmap?) {
                     state.url = url
                     state.loadError = null
-                    Log.i(SignInBrowser.Tag, "Loading $url")
-                }
-
-                override fun onPageFinished(view: WebView, url: String?) {
-                    Log.i(SignInBrowser.Tag, "Loaded $url (${view.title})")
                 }
 
                 override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                     if (!request.isForMainFrame) return
-                    Log.w(SignInBrowser.Tag, "${request.url}: ${error.errorCode} ${error.description}")
+                    Log.w(SignInBrowser.Tag, "${request.url.host}: ${error.errorCode} ${error.description}")
                     state.loadError = "(${error.description})"
                 }
 
@@ -177,7 +171,7 @@ class SignInActivity : ComponentActivity() {
                     request: WebResourceRequest,
                     response: WebResourceResponse,
                 ) {
-                    if (request.isForMainFrame) Log.w(SignInBrowser.Tag, "${request.url}: HTTP ${response.statusCode}")
+                    if (request.isForMainFrame) Log.w(SignInBrowser.Tag, "${request.url.host}: HTTP ${response.statusCode}")
                 }
 
                 // A crashed page must not take Glint down with it; choosing a site opens a new browser.
@@ -199,10 +193,6 @@ class SignInActivity : ComponentActivity() {
                     state.progress = newProgress
                 }
 
-                override fun onConsoleMessage(message: ConsoleMessage): Boolean {
-                    Log.i(SignInBrowser.Tag, "Page: ${message.message()} (${message.sourceId()}:${message.lineNumber()})")
-                    return true
-                }
             }
         browserFrame.addView(web, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         webView = web
@@ -226,7 +216,7 @@ private class SignInState {
 
 /** How the sign-in browser presents itself to sites. */
 internal object SignInBrowser {
-    /** Logcat tag: `adb logcat -s GlintSignIn` shows what the sign-in pages did. */
+    /** Logcat tag for pages that fail to load: `adb logcat -s GlintSignIn`. Addresses are not logged. */
     const val Tag = "GlintSignIn"
 
     private val ChromeVersion = Regex("""Chrome/(\d+)""")

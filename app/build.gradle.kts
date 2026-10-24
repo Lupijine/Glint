@@ -16,8 +16,8 @@ android {
         applicationId = "io.github.lupijine.glint"
         minSdk = 24
         targetSdk = 35
-        versionCode = 11
-        versionName = "0.9.0"
+        versionCode = 12
+        versionName = "0.9.1"
         testInstrumentationRunner = "app.glint.ui.theme.GlassTestRunner"
         // -Pglint.abi=x86_64 builds a single APK for one processor, such as an emulator's.
         abiOverride?.let { ndk { abiFilters += it } }

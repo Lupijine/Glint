@@ -1,0 +1,4 @@
+- The sign-in browser shows pages again; on some phones they stayed blank
+- Sign-in pages open in their light look and stay on the web instead of jumping to other apps
+- A sign-in page that cannot load says why
+- When yt-dlp cannot read a site that changed, such as some Facebook videos, the error says so
