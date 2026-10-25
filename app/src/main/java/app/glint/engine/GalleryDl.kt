@@ -74,7 +74,10 @@ object GalleryDl {
                     onFile(files.size)
                 }
             }
-        if (result.exitCode != 0) Log.w(Tag, "gallery-dl ended with ${result.exitCode}")
+        if (result.exitCode != 0) {
+            // Its own words say why; no addresses or names beyond the link's site are in them.
+            Log.w(Tag, "gallery-dl ended with ${result.exitCode}: ${result.errors.trim().takeLast(1500)}")
+        }
         return Outcome(synchronized(files) { files.toList() }, result.exitCode, result.errors)
     }
 
@@ -94,6 +97,7 @@ object GalleryDl {
             withTimeoutOrNull(45_000) {
                 NativeTools.run(appContext, command, mapOf("GLINT_YTDLP" to NativeTools.ytDlp(appContext).absolutePath))
             } ?: throw Fallbacks.Failed("gallery-dl took too long to read this link")
+        if (result.errors.isNotBlank()) Log.w(Tag, "gallery-dl listing said: ${result.errors.trim().takeLast(1500)}")
         return GalleryDlOutput.listing(result.output, result.errors, result.exitCode, limit)
     }
 
